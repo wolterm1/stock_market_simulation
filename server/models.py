@@ -1,9 +1,11 @@
 from pydantic import BaseModel
 
+class ProductNotFound(Exception):
+    pass
 
 class ProductEntry(BaseModel):
     """Model that represents a static representation of an actively changing
-    product"""
+    product, either in the market or in the user's inventory."""
 
     product_id: int
     product_name: str
