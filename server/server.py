@@ -15,8 +15,8 @@ from exception_handlers import (
     incorrect_password_handler,
 )
 
-from _auth import users, authenticate_user, register, logout, find_user_by_token, InvalidToken, IncorrectPassword  # type: ignore
-from _market_logic import DBUser, get_db_user, get_product, get_products, OutOfStock, NotEnoughMoney, ProductNotFound  # type: ignore
+from _so._auth import authenticate_user, register, logout, find_user_by_token, InvalidToken, IncorrectPassword  # type: ignore
+from _so._market_logic import DBUser, get_db_user, get_product, get_products, OutOfStock, NotEnoughMoney, ProductNotFound  # type: ignore
 
 app = FastAPI()
 
