@@ -43,7 +43,7 @@ def logout(token: str):
             users[i] = (user_id, user_name, user_password, None)
             return True
 
-    raise InvalidToken("Token not found")
+    raise InvalidToken("User not found")
 
 
 def find_user_by_token(token: str) -> int:

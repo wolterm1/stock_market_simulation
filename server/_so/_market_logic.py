@@ -38,16 +38,13 @@ def get_products() -> list[Product]:
     ]
 
 
-# OR (discussion needed)
-
-
 class InventoryItem(TypedDict):
     product_id: int
     quantity: int
 
 
 @dataclass
-class DBUser:
+class User:
 
     id: int
     name: str
@@ -62,11 +59,11 @@ class DBUser:
         return True
 
 
-def get_db_user(user_id: int) -> DBUser:
-    # Returns a user object from the database
-    return DBUser(
-        id=1,
-        name="user1",
+def get_user(user_id: int) -> User:
+    # Returns a fake user object from the database
+    return User(
+        id=user_id,
+        name=f"user{user_id}",
         money=1000,
         inventory=[InventoryItem(product_id=1, quantity=2)],
     )
