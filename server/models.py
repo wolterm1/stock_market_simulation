@@ -1,17 +1,16 @@
 from pydantic import BaseModel, Field
 
 
-class ProductNotFound(Exception):
-    pass
-
-
 class ProductModel(BaseModel):
     """Model that represents a static representation of an actively changing
     product, either in the market or in the user's inventory."""
 
     product_id: int = Field(examples=[1, 2])
     product_name: str = Field(examples=["Chocolate", "Ice Cream"])
-    current_value: int = Field(examples=[100, 200])
+    current_value: int = Field(
+        description="The current value of the product on the market",
+        examples=[100, 200],
+    )
 
 
 class InventoryItem(BaseModel):
@@ -26,9 +25,10 @@ class UserModel(BaseModel):
     inventory: list[InventoryItem]
 
 
-class LoginToken(BaseModel):
-    token: str = Field(
+class Token(BaseModel):
+    access_token: str = Field(
         examples=[
-            "Bearer 5gxl2.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"
+            "gxl2.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"
         ]
     )
+    token_type: str = Field(default="bearer", examples=["bearer"])

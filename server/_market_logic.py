@@ -12,7 +12,12 @@ class OutOfStock(Exception):
     pass
 
 
-class Product(TypedDict):
+class ProductNotFound(Exception):
+    pass
+
+
+@dataclass
+class Product:
     id: int
     name: str
     value: int
@@ -21,15 +26,15 @@ class Product(TypedDict):
 
 def get_product(product_id: int) -> Product:
     # Returns a dictionary with product details
-    return {"id": 1, "name": "product1", "value": 100, "amount": 4}
+    return Product(id=product_id, name="Chocolate", value=100, amount=4)
 
 
 def get_products() -> list[Product]:
     # (id, name, value, amount)
     return [
-        {"id": 1, "name": "product1", "value": 100, "amount": 4},
-        {"id": 2, "name": "product2", "value": 200, "amount": 8},
-        {"id": 3, "name": "product3", "value": 300, "amount": 2},
+        Product(id=1, name="Chocolate", value=100, amount=4),
+        Product(id=2, name="Schmutz", value=5, amount=32),
+        Product(id=3, name="Reis", value=8, amount=9),
     ]
 
 
@@ -51,7 +56,7 @@ class DBUser:
     test = "w"
 
     def buy_product(self, product_id: int, amount: int):
-        return True
+        raise NotEnoughMoney("Not enough money!!!!")
 
     def sell_product(self, product_id: int, amount: int):
         return True
