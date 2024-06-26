@@ -1,15 +1,5 @@
-from pydantic import BaseModel
-
-
-class LoginPayload(BaseModel):
-    user_name: str
-    password: str
-
-
-class RegisterPayload(BaseModel):
-    user_name: str
-    password: str
+from pydantic import BaseModel, Field
 
 
 class AmountPayload(BaseModel):
-    amount: int
+    amount: int = Field(default=1, ge=1, examples=[1, 2, 3])
