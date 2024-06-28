@@ -8,11 +8,17 @@ import random
 import logging
 import json
 
-from .exceptions import *
 from .product import Product
 from .market import Market, MarketItem
 from .user import User, InventoryItem
 from .responses import UserResponse, ProductResponse
+from .exceptions import (
+    IncorrectCredentials,
+    UserAlreadyExists,
+    InvalidToken,
+    ProductNotFound,
+    TransactionFailed,
+)
 
 from textual import log
 
@@ -35,7 +41,11 @@ class APIClient:
         response = await self.client.post(
             "/login", data={"username": username, "password": password}
         )
+
+        if response.status_code == 401:
+            raise IncorrectCredentials(response.json()["detail"])
         response.raise_for_status()
+
         data = response.json()
         self.client.auth = BearerAuth(data["token_type"], data["access_token"])
 
@@ -43,20 +53,31 @@ class APIClient:
         response = await self.client.post(
             "/register", data={"username": username, "password": password}
         )
+
+        if response.status_code == 409:
+            raise UserAlreadyExists(response.json()["detail"])
         response.raise_for_status()
+
         data = response.json()
         self.client.auth = BearerAuth(data["token_type"], data["access_token"])
 
     async def logout(self):
         response = await self.client.put("/logout")
+
+        if response.status_code == 401:
+            raise InvalidToken(response.json()["detail"])
         response.raise_for_status()
+
         self.client.auth = None
 
     async def get_user(self) -> dict:
         response = await self.client.get("/user")
-        response.raise_for_status()
-        data: UserResponse = response.json()
 
+        if response.status_code == 401:
+            raise InvalidToken(response.json()["detail"])
+        response.raise_for_status()
+
+        data: UserResponse = response.json()
         data.inventory = tuple(
             InventoryItem(self.get_product(item["product_id"]), item["quantity"])
             for item in data["inventory"]
@@ -65,7 +86,11 @@ class APIClient:
 
     async def get_product(self, product_id: int) -> Product:
         response = await self.client.get(f"/product/{product_id}")
+
+        if response.status_code == 404:
+            raise ProductNotFound(response.json()["detail"])
         response.raise_for_status()
+
         data: ProductResponse = response.json()
         return Product(**data)
 
@@ -83,10 +108,20 @@ class APIClient:
         response = await self.client.post(
             f"/product/{product_id}/buy", data={"quantity": quantity}
         )
+
+        if response.status_code == 400:
+            raise TransactionFailed(response.json()["detail"])
+        elif response.status_code == 401:
+            raise InvalidToken(response.json()["detail"])
         response.raise_for_status()
 
     async def sell_product(self, product_id: int, quantity: int):
         response = await self.client.post(
             f"/product/{product_id}/sell", data={"quantity": quantity}
         )
+
+        if response.status_code == 400:
+            raise TransactionFailed(response.json()["detail"])
+        elif response.status_code == 401:
+            raise InvalidToken(response.json()["detail"])
         response.raise_for_status()
