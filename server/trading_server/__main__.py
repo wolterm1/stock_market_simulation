@@ -7,21 +7,23 @@ from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 
-from trading_server._so._auth import InvalidToken  # type: ignore
 from trading_server._so._auth import (
+    InvalidToken,
     IncorrectPassword,
     authenticate_user,
     find_user_by_token,
     logout,
     register,
 )
-from trading_server._so._market_logic import NotEnoughMoney  # type: ignore
 from trading_server._so._market_logic import (
+    NotEnoughMoney,
     OutOfStock,
     ProductNotFound,
     User,
     get_product,
     get_products,
+    get_market,
+    get_records,
     get_user,
 )
 from trading_server.exception_handlers import (
@@ -37,6 +39,7 @@ from trading_server.models import (
     Token,
     UserModel,
     ProductRecordModel,
+    ProductRecordsModel,
 )
 from trading_server.payloads import AmountPayload
 
@@ -209,18 +212,35 @@ async def get_product_records_(
     product_id: int,
     from_: Annotated[datetime, Query(alias="from", default_factory=_10_minutess_ago)],
     to_: Annotated[datetime, Query(alias="to", default_factory=datetime.now)],
-) -> list[ProductRecordModel]:
-    return get_records(product_id, from_=from_, to=to_)  # type: ignore
+) -> ProductRecordsModel:
+    records = get_records(product_id, from_=from_, to_=to_)
+    return ProductRecordsModel(
+        product_id=product_id,
+        records=[ProductRecordModel(date=date, value=value) for date, value in records],
+        start_date=records[0][0],
+        end_date=records[-1][0],
+    )
 
 
 @app.get("/products")
-async def get_all_products_on_market_() -> list[ProductModel]:
+async def get_all_products_() -> list[ProductModel]:
     return [
         ProductModel(
             product_id=product.id,
             product_name=product.name,
         )
         for product in get_products()
+    ]
+
+
+@app.get("/market")
+async def get_market_() -> list[ProductModel]:
+    return [
+        InventoryItemModel(
+            product_id=product.id,
+            product_name=product.name,
+        )
+        for product in get_market()
     ]
 
 
