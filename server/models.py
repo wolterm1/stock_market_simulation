@@ -13,7 +13,7 @@ class ProductModel(BaseModel):
     )
 
 
-class InventoryItem(BaseModel):
+class InventoryItemModel(BaseModel):
     product_id: int = Field(examples=[1, 2])
     quantity: int = Field(examples=[2, 1])
 
@@ -22,7 +22,7 @@ class UserModel(BaseModel):
     user_id: int = Field(examples=[1, 2])
     user_name: str = Field(examples=["Alice", "Bob"])
     money: int = Field(examples=[1000, 2000])
-    inventory: list[InventoryItem]
+    inventory: list[InventoryItemModel]
 
 
 class Token(BaseModel):

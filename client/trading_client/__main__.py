@@ -20,11 +20,14 @@ from trading_client.api.api_client import APIClient
 
 class TradingApp(App):
 
-    api = APIClient()
+    CSS_PATH = ["style.tcss", "screens/screens.tcss"]
+
+    api = APIClient("http://localhost:8080")
 
     @work
     async def on_mount(self):
-        await self.push_screen_wait(LoginScreen())
+        # await self.push_screen_wait(LoginScreen())
+        self.push_screen(TradingScreen())
 
     async def on_unmount(self) -> None:
         await self.api.client.aclose()

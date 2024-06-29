@@ -2,7 +2,7 @@ import httpx
 
 import asyncio
 from dataclasses import dataclass
-from typing import Optional, TypedDict
+from typing import AsyncGenerator, Generator, Optional, TypedDict
 
 import random
 import logging
@@ -33,11 +33,16 @@ class BearerAuth(httpx.Auth):
         yield request
 
 
+class NoAuth(httpx.Auth):
+    def __init__(self):
+        pass
+
+
 class APIClient:
     def __init__(self, base_url="http://localhost:8000") -> None:
         self.client = httpx.AsyncClient(base_url=base_url)  # Use AsyncClient
 
-    async def login(self, username: str, password: str) -> str:
+    async def login(self, username: str, password: str):
         response = await self.client.post(
             "/login", data={"username": username, "password": password}
         )
@@ -49,7 +54,7 @@ class APIClient:
         data = response.json()
         self.client.auth = BearerAuth(data["token_type"], data["access_token"])
 
-    async def register(self, username: str, password: str) -> str:
+    async def register(self, username: str, password: str):
         response = await self.client.post(
             "/register", data={"username": username, "password": password}
         )
@@ -68,9 +73,9 @@ class APIClient:
             raise InvalidToken(response.json()["detail"])
         response.raise_for_status()
 
-        self.client.auth = None
+        self.client.auth = NoAuth()
 
-    async def get_user(self) -> dict:
+    async def get_user(self) -> User:
         response = await self.client.get("/user")
 
         if response.status_code == 401:
@@ -78,11 +83,16 @@ class APIClient:
         response.raise_for_status()
 
         data: UserResponse = response.json()
-        data.inventory = tuple(
-            InventoryItem(self.get_product(item["product_id"]), item["quantity"])
+        inventory = [
+            InventoryItem(await self.get_product(item["product_id"]), item["quantity"])
             for item in data["inventory"]
+        ]
+        return User(
+            user_id=data["user_id"],
+            user_name=data["user_name"],
+            balance=data["balance"],
+            inventory=inventory,
         )
-        return User(**data)
 
     async def get_product(self, product_id: int) -> Product:
         response = await self.client.get(f"/product/{product_id}")
@@ -94,15 +104,11 @@ class APIClient:
         data: ProductResponse = response.json()
         return Product(**data)
 
-    async def get_market(self) -> Market:
+    async def get_products(self) -> list[Product]:
         response = await self.client.get("/products")
         response.raise_for_status()
         data: list[ProductResponse] = response.json()
-        supply = tuple(
-            MarketItem(self.get_product(item["product_id"]), item["quantity"])
-            for item in data
-        )
-        return Market(supply=supply)
+        return [Product(**product) for product in data]
 
     async def buy_product(self, product_id: int, quantity: int):
         response = await self.client.post(

@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from typing import Annotated
 
-from server.models import UserModel, ProductModel, Token
+from server.models import InventoryItemModel, UserModel, ProductModel, Token
 from server.payloads import AmountPayload
 from server.exception_handlers import (
     invalid_token_handler,
@@ -15,10 +15,13 @@ from server.exception_handlers import (
     incorrect_password_handler,
 )
 
+from logging import getLogger
+
 from server._so._auth import authenticate_user, register, logout, find_user_by_token, InvalidToken, IncorrectPassword  # type: ignore
 from server._so._market_logic import User, get_user, get_product, get_products, OutOfStock, NotEnoughMoney, ProductNotFound  # type: ignore
 
 app = FastAPI()
+logger = getLogger("uvicorn")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -48,8 +51,12 @@ async def get_current_user_model(
         UserModel: Model describing the current user
     """
     user = get_user(user_id)
+    inventory = [
+        InventoryItemModel(product_id=item["product_id"], quantity=item["quantity"])
+        for item in user.inventory
+    ]
     return UserModel(
-        user_id=user.id, user_name=user.name, money=user.money, inventory=user.inventory
+        user_id=user.id, user_name=user.name, money=user.money, inventory=inventory
     )
 
 
@@ -121,10 +128,8 @@ async def register_(
 
 
 @app.put("/logout", responses={401: {"description": "Invalid Token"}})
-async def logout_(
-    current_user: Annotated[UserModel, Depends(get_current_user_model)]
-) -> None:
-    logout(current_user)
+async def logout_(token: Annotated[str, Depends(oauth2_scheme)]) -> None:
+    logout(token)
 
 
 @app.get("/user", responses={401: {"description": "Invalid Token"}})
@@ -163,10 +168,10 @@ async def get_all_products_on_market_() -> list[ProductModel]:
 )
 async def buy_product_(
     user: Annotated[User, Depends(get_current_user)],
-    product_id: Annotated[ProductModel, Depends(get_product_entry)],
+    product: Annotated[ProductModel, Depends(get_product_entry)],
     payload: AmountPayload,
 ) -> None:
-    user.buy_product(product_id, payload.amount)
+    user.buy_product(product.product_id, payload.amount)
 
 
 @app.put(
@@ -179,10 +184,10 @@ async def buy_product_(
 )
 async def sell_product_(
     user: Annotated[User, Depends(get_current_user)],
-    product_id: Annotated[ProductModel, Depends(get_product_entry)],
+    product: Annotated[ProductModel, Depends(get_product_entry)],
     payload: AmountPayload,
 ) -> None:
-    user.sell_product(product_id, payload.amount)
+    user.sell_product(product.product_id, payload.amount)
 
 
 if __name__ == "__main__":

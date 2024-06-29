@@ -14,11 +14,13 @@ from textual.containers import (
 from textual.worker import Worker, WorkerState
 
 from trading_client.utils.exception_handler import catch_and_notify
+from trading_client.api.exceptions import IncorrectCredentials, UserAlreadyExists
+from trading_client.utils.mixins import AppType
 
 from httpx import ConnectError
 
 
-class LoginScreen(Screen):
+class LoginScreen(AppType, Screen):
 
     username = ""
     password = ""
@@ -46,14 +48,14 @@ class LoginScreen(Screen):
     async def password_changed(self, event: Input.Changed):
         self.password = event.value
 
-    @catch_and_notify([ConnectError])
     @on(Button.Pressed, "#login-button")
-    async def login(self, event):
+    @catch_and_notify([ConnectError, IncorrectCredentials])
+    async def login(self, event: Button.Pressed):
         await self.app.api.login(self.username, self.password)
         self.dismiss()
 
     @on(Button.Pressed, "#register-button")
-    @catch_and_notify([ConnectError])
-    async def register(self, event):
+    @catch_and_notify([ConnectError, UserAlreadyExists])
+    async def register(self, event: Button.Pressed):
         await self.app.api.register(self.username, self.password)
         self.dismiss()

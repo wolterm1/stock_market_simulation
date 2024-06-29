@@ -14,4 +14,4 @@ class User:
     user_id: int
     user_name: str
     balance: int
-    inventory: tuple[InventoryItem]
+    inventory: list[InventoryItem]

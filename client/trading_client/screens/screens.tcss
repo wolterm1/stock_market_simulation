@@ -1,0 +1,4 @@
+ProductWidget {
+	layout: grid;
+	grid-size: 2 3;
+}
