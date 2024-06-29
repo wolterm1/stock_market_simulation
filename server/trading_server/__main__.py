@@ -1,22 +1,37 @@
-from fastapi import FastAPI, HTTPException, Depends, Request
+from datetime import datetime, timedelta
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 
-from typing import Annotated
-
-from server.models import UserModel, ProductModel, Token
-from server.payloads import AmountPayload
-from server.exception_handlers import (
+from trading_server._so._auth import InvalidToken  # type: ignore
+from trading_server._so._auth import (
+    IncorrectPassword,
+    authenticate_user,
+    find_user_by_token,
+    logout,
+    register,
+)
+from trading_server._so._market_logic import NotEnoughMoney  # type: ignore
+from trading_server._so._market_logic import (
+    OutOfStock,
+    ProductNotFound,
+    User,
+    get_product,
+    get_products,
+    get_user,
+)
+from trading_server.exception_handlers import (
+    incorrect_password_handler,
     invalid_token_handler,
-    product_not_found_handler,
     not_enough_money_handler,
     out_of_stock_handler,
-    incorrect_password_handler,
+    product_not_found_handler,
 )
-
-from server._so._auth import authenticate_user, register, logout, find_user_by_token, InvalidToken, IncorrectPassword  # type: ignore
-from server._so._market_logic import User, get_user, get_product, get_products, OutOfStock, NotEnoughMoney, ProductNotFound  # type: ignore
+from trading_server.models import ProductModel, Token, UserModel
+from trading_server.payloads import AmountPayload
 
 app = FastAPI()
 
@@ -49,7 +64,10 @@ async def get_current_user_model(
     """
     user = get_user(user_id)
     return UserModel(
-        user_id=user.id, user_name=user.name, money=user.money, inventory=user.inventory
+        user_id=user.id,
+        user_name=user.name,
+        money=user.money,
+        inventory=user.inventory,
     )
 
 
@@ -79,7 +97,9 @@ async def get_product_entry(product_id: int) -> ProductModel:
     """
     product = get_product(product_id)
     return ProductModel(
-        product_id=product.id, product_name=product.name, current_value=product.value
+        product_id=product.id,
+        product_name=product.name,
+        current_value=product.value,
     )
 
 
@@ -102,7 +122,8 @@ async def index_() -> dict[str, str]:
 
 @app.post(
     "/login",
-    description="Generates a token used for authentication if the users credentials match.",
+    description="Generates a token used for authentication "
+    "if the users credentials match.",
     responses={401: {"description": "Incorrect username or password"}},
 )
 async def login_(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:
@@ -134,11 +155,30 @@ async def get_authenticated_user_(
     return current_user
 
 
-@app.get("/product/{product_id}", responses={404: {"description": "Product not found"}})
+@app.get(
+    "/product/{product_id}",
+    responses={404: {"description": "Product not found"}},
+)
 async def get_product_by_id_(
     product: Annotated[ProductModel, Depends(get_product_entry)]
 ) -> ProductModel:
     return product
+
+
+def _before_10_minutes():
+    return datetime.now() - timedelta(minutes=10)
+
+
+@app.get(
+    "/product/{product_id}/records",
+    responses={404: {"description": "Product not found"}},
+)
+async def get_product_records_(
+    product: Annotated[ProductModel, Depends(get_product_entry)],
+    from_: Annotated[datetime, Query(alias="from", default_factory=_before_10_minutes)],
+    to_: Annotated[datetime, Query(alias="to", default_factory=datetime.now)],
+) -> list[tuple[str, float]]:
+    return product.get_records(from_=from_, to=to_)
 
 
 @app.get("/products")

@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trading_server"
+version = "0.1.0"
+description = "Trading Server"
+dependencies = ["fastapi", "uvicorn", "pydantic"]
+requires-python = ">=3.10"
+readme = "README.md"
+
+[tool.black]
+line-length = 88
