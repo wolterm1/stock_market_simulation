@@ -31,7 +31,7 @@ pip install -e server
 ```bash
 uvicorn trading_server.__main__:app --port 8080 --reload
 # if this doesnt work
-uvicorn trading_server.__main__:app --port 8080 --reload
+python -m uvicorn trading_server.__main__:app --port 8080 --reload
 # or
 python -m trading_server
 ```

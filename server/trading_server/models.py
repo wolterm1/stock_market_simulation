@@ -13,9 +13,17 @@ class ProductModel(BaseModel):
 class ProductRecordModel(BaseModel):
     """Model that represents a record of a product in the market."""
 
-    product_id: int = Field(examples=[1, 2])
     date: datetime = Field(examples=["2024-6-29T12:00:00", "2024-6-30T12:00:00"])
     value: int = Field(examples=[100, 200])
+
+
+class ProductRecordsModel(BaseModel):
+    """Model that represents a collection of records of a product in the market."""
+
+    product_id: int = Field(examples=[1, 2])
+    records: list[ProductRecordModel]
+    start_date: datetime = Field(examples=["2024-6-28T12:00:00", "2024-6-29T12:00:00"])
+    end_date: datetime = Field(examples=["2024-6-29T12:00:00", "2024-6-30T12:00:00"])
 
 
 class InventoryItemModel(BaseModel):
