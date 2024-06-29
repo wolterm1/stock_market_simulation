@@ -1,8 +1,11 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
-
-from server._so._auth import UserNotFound, IncorrectPassword, InvalidToken  # type: ignore
-from server._so._market_logic import OutOfStock, NotEnoughMoney, ProductNotFound
+from trading_server._so._auth import (
+    IncorrectPassword,
+    InvalidToken,
+    UserNotFound,
+)
+from trading_server._so._market_logic import NotEnoughMoney, OutOfStock, ProductNotFound
 
 
 async def user_not_found_handler(request: Request, exc: UserNotFound):
