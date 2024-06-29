@@ -234,13 +234,13 @@ async def get_all_products_() -> list[ProductModel]:
 
 
 @app.get("/market")
-async def get_market_() -> list[ProductModel]:
+async def get_market_() -> list[InventoryItemModel]:
     return [
         InventoryItemModel(
-            product_id=product.id,
-            product_name=product.name,
+            product_id=id,
+            quantity=quantity,
         )
-        for product in get_market()
+        for id, quantity in get_market()
     ]
 
 

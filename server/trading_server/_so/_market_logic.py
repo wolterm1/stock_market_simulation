@@ -38,9 +38,9 @@ def get_products() -> list[Product]:
     ]
 
 
-def get_market() -> list[tuple[Product, int]]:
+def get_market() -> list[tuple[int, int]]:
     # (product, quantity)
-    return list(zip(get_products(), [10, 20, 30]))
+    return list(zip((product.id for product in get_products()), [10, 20, 30]))
 
 
 def generate_records(
