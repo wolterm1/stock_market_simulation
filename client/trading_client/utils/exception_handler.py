@@ -1,3 +1,4 @@
+from textual.app import App
 from textual.widget import Widget
 
 from functools import wraps
@@ -11,6 +12,17 @@ import asyncio
 
 
 def catch_and_notify(exceptions: Iterable[Type[Exception]]) -> Callable:
+    """
+    Catches any exceptions and notifies the user with an error toast describing \
+    the error.
+    Args:
+      exceptions: Iterable[Type[Exception]]: All exceptions that should be caught
+
+    Returns:
+        Callable
+
+    """
+
     def catch_and_notify_(func: Callable[..., Any]) -> Callable[..., Any]:
         if asyncio.iscoroutinefunction(func):
 

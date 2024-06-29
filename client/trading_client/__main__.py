@@ -15,10 +15,11 @@ from textual.worker import Worker, WorkerState
 
 from trading_client.screens import TradingScreen, LoginScreen
 
-from trading_client.api.api_client import APIClient
+from trading_client.api import APIClient
 
 
 class TradingApp(App):
+    """ """
 
     CSS_PATH = ["style.tcss", "screens/screens.tcss"]
 

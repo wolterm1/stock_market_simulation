@@ -1,3 +1,4 @@
+from datetime import datetime
 import httpx
 
 import asyncio
@@ -8,10 +9,10 @@ import random
 import logging
 import json
 
-from .product import Product
+from .product import Product, PriceRecord
 from .market import Market, MarketItem
 from .user import User, InventoryItem
-from .responses import UserResponse, ProductResponse
+from .responses import UserResponse, ProductResponse, PriceRecordResponse
 from .exceptions import (
     IncorrectCredentials,
     UserAlreadyExists,
@@ -24,21 +25,35 @@ from textual import log
 
 
 class BearerAuth(httpx.Auth):
+    """ """
+
     def __init__(self, token_type, access_token) -> None:
         self.token_type = token_type
         self.access_token = access_token
 
     def auth_flow(self, request):
+        """
+
+        Args:
+          request:
+
+        Returns:
+
+        """
         request.headers["Authorization"] = f"{self.token_type} {self.access_token}"
         yield request
 
 
 class NoAuth(httpx.Auth):
+    """ """
+
     def __init__(self):
         pass
 
 
 class APIClient:
+    """ """
+
     def __init__(self, base_url="http://localhost:8000") -> None:
         self.client = httpx.AsyncClient(base_url=base_url)  # Use AsyncClient
 
@@ -103,6 +118,28 @@ class APIClient:
 
         data: ProductResponse = response.json()
         return Product(**data)
+
+    async def get_records(
+        self, product_id: int, from_: datetime, to_: datetime | None = None
+    ) -> list[PriceRecord]:
+        params = {
+            "from": from_.isoformat(),
+        }
+        if to_ is not None:
+            params["to"] = to_.isoformat()
+
+        response = await self.client.get(
+            f"/{product_id}/records",
+            params=params,
+        )
+        response.raise_for_status()
+        data: PriceRecordResponse = response.json()
+        return [
+            PriceRecord(
+                date=datetime.fromisoformat(record["date"]), value=record["value"]
+            )
+            for record in data["records"]
+        ]
 
     async def get_products(self) -> list[Product]:
         response = await self.client.get("/products")

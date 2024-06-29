@@ -6,8 +6,6 @@ if TYPE_CHECKING:
 
 
 class AppType:
-    app: "TradingApp"
+    """Mixin for typing the App instance."""
 
-    # def __init__(self, *args, **kwargs) -> None:
-    #     super().__init__(*args, **kwargs)
-    #     self.trading_app = cast("TradingApp", self.app)
+    app: "TradingApp"

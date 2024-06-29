@@ -1,31 +1,26 @@
+from httpx import ConnectError
 from textual import events, log, on, work
 from textual.app import App, ComposeResult
-from textual.reactive import reactive
-from textual.screen import Screen, ModalScreen
-from textual.widgets import Static, Label, Header, Button, Input, LoadingIndicator
 from textual.containers import (
     Horizontal,
     Vertical,
-    VerticalScroll,
-    HorizontalScroll,
-    Center,
-    Container,
 )
-from textual.worker import Worker, WorkerState
-
-from trading_client.utils.exception_handler import catch_and_notify
+from textual.reactive import reactive
+from textual.screen import Screen
+from textual.widgets import Button, Input, Label
 from trading_client.api.exceptions import IncorrectCredentials, UserAlreadyExists
-from trading_client.utils.mixins import AppType
 
-from httpx import ConnectError
+from trading_client.utils import AppType, catch_and_notify
 
 
 class LoginScreen(AppType, Screen):
+    """ """
 
     username = ""
     password = ""
 
     def compose(self) -> ComposeResult:
+        """ """
         yield Label("Login or Register")
         with Vertical():
             yield Input(placeholder="Username", name="username", id="username-input")
