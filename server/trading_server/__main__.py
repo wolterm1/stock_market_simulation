@@ -30,7 +30,13 @@ from trading_server.exception_handlers import (
     out_of_stock_handler,
     product_not_found_handler,
 )
-from trading_server.models import ProductModel, Token, UserModel
+from trading_server.models import (
+    InventoryItemModel,
+    ProductModel,
+    Token,
+    UserModel,
+    ProductRecordModel,
+)
 from trading_server.payloads import AmountPayload
 
 app = FastAPI()
@@ -63,11 +69,12 @@ async def get_current_user_model(
         UserModel: Model describing the current user
     """
     user = get_user(user_id)
+    inventory = [
+        InventoryItemModel(product_id=item["product_id"], quantity=item["quantity"])
+        for item in user.inventory
+    ]
     return UserModel(
-        user_id=user.id,
-        user_name=user.name,
-        money=user.money,
-        inventory=user.inventory,
+        user_id=user.id, user_name=user.name, money=user.money, inventory=inventory
     )
 
 
@@ -99,7 +106,6 @@ async def get_product_entry(product_id: int) -> ProductModel:
     return ProductModel(
         product_id=product.id,
         product_name=product.name,
-        current_value=product.value,
     )
 
 
@@ -122,9 +128,10 @@ async def index_() -> dict[str, str]:
 
 @app.post(
     "/login",
-    description="Generates a token used for authentication "
-    "if the users credentials match.",
     responses={401: {"description": "Incorrect username or password"}},
+    description="""
+    Generates a token used for authentication if the users credentials match.
+    """,
 )
 async def login_(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:
     token = authenticate_user(form_data.username, form_data.password)
@@ -132,7 +139,13 @@ async def login_(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> 
     return Token(access_token=token)
 
 
-@app.post("/register", status_code=201)
+@app.post(
+    "/register",
+    status_code=201,
+    description="""
+    Registers a new user in the system with the given credentials and logins the user.
+    """,
+)
 async def register_(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ) -> Token:
@@ -141,14 +154,24 @@ async def register_(
     return Token(access_token=token)
 
 
-@app.put("/logout", responses={401: {"description": "Invalid Token"}})
-async def logout_(
-    current_user: Annotated[UserModel, Depends(get_current_user_model)]
-) -> None:
-    logout(current_user)
+@app.put(
+    "/logout",
+    responses={401: {"description": "Invalid Token"}},
+    description="""
+    Logs out the current user by invalidating the token.
+    """,
+)
+async def logout_(token: Annotated[str, Depends(oauth2_scheme)]) -> None:
+    logout(token)
 
 
-@app.get("/user", responses={401: {"description": "Invalid Token"}})
+@app.get(
+    "/user",
+    responses={401: {"description": "Invalid Token"}},
+    description="""
+    Get all relevant information about a user, including their inventory.
+    """,
+)
 async def get_authenticated_user_(
     current_user: Annotated[UserModel, Depends(get_current_user_model)]
 ) -> UserModel:
@@ -158,6 +181,9 @@ async def get_authenticated_user_(
 @app.get(
     "/product/{product_id}",
     responses={404: {"description": "Product not found"}},
+    description="""
+    Get products information by its id.
+    """,
 )
 async def get_product_by_id_(
     product: Annotated[ProductModel, Depends(get_product_entry)]
@@ -165,20 +191,24 @@ async def get_product_by_id_(
     return product
 
 
-def _before_10_minutes():
+def _10_minutess_ago() -> datetime:
+    """Helper Function that generates a datetime of 10 minutes ago from invocation"""
     return datetime.now() - timedelta(minutes=10)
 
 
 @app.get(
     "/product/{product_id}/records",
     responses={404: {"description": "Product not found"}},
+    description="""
+    Get all records of the specified product in the given time range.
+    """,
 )
 async def get_product_records_(
-    product: Annotated[ProductModel, Depends(get_product_entry)],
-    from_: Annotated[datetime, Query(alias="from", default_factory=_before_10_minutes)],
+    product_id: int,
+    from_: Annotated[datetime, Query(alias="from", default_factory=_10_minutess_ago)],
     to_: Annotated[datetime, Query(alias="to", default_factory=datetime.now)],
-) -> list[tuple[str, float]]:
-    return product.get_records(from_=from_, to=to_)
+) -> list[ProductRecordModel]:
+    return get_records(product_id, from_=from_, to=to_)  # type: ignore
 
 
 @app.get("/products")
@@ -187,7 +217,6 @@ async def get_all_products_on_market_() -> list[ProductModel]:
         ProductModel(
             product_id=product.id,
             product_name=product.name,
-            current_value=product.value,
         )
         for product in get_products()
     ]
@@ -203,10 +232,10 @@ async def get_all_products_on_market_() -> list[ProductModel]:
 )
 async def buy_product_(
     user: Annotated[User, Depends(get_current_user)],
-    product_id: Annotated[ProductModel, Depends(get_product_entry)],
+    product: Annotated[ProductModel, Depends(get_product_entry)],
     payload: AmountPayload,
 ) -> None:
-    user.buy_product(product_id, payload.amount)
+    user.buy_product(product.product_id, payload.amount)
 
 
 @app.put(
@@ -219,10 +248,10 @@ async def buy_product_(
 )
 async def sell_product_(
     user: Annotated[User, Depends(get_current_user)],
-    product_id: Annotated[ProductModel, Depends(get_product_entry)],
+    product: Annotated[ProductModel, Depends(get_product_entry)],
     payload: AmountPayload,
 ) -> None:
-    user.sell_product(product_id, payload.amount)
+    user.sell_product(product.product_id, payload.amount)
 
 
 if __name__ == "__main__":
