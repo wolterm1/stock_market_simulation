@@ -25,22 +25,22 @@ Server starten und dann unter [127.0.0.1:8000/docs](127.0.0.1:8000/docs) oder un
 1. Follow Installation instructions for the required pybindings
 2. Install dependencies for the server with your favorite python version (tested for 3.12.4)
 ```bash
-pip install -r server/requirements.txt
+pip install -e server
 ```
-3. Start server (with optional `--reload`)
+3. Run server (with optional `--reload`)
 ```bash
-uvicorn server.main:app --port 8080 --reload
+uvicorn trading_server.__main__:app --port 8080 --reload
 # if this doesnt work
-uvicorn server.main:app --port 8080 --reload
+uvicorn trading_server.__main__:app --port 8080 --reload
 # or
-python fastapi_server.py
+python -m trading_server
 ```
 
 ## Build API Reference
 ```bash
 # install redocly
 npm install -g redocly
-# get newest openapi specification
+# get newest openapi specification (server needs to run)
 wget localhost:8080/openapi.json -O server/openapi.json
 # build docs
 redocly build-docs server/openapi.json --output docs/static_api_reference.html
