@@ -6,6 +6,8 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
+from contextlib import asynccontextmanager
+import asyncio
 
 from trading_server._so._auth import (
     InvalidToken,
@@ -25,6 +27,7 @@ from trading_server._so._market_logic import (
     get_market,
     get_records,
     get_user,
+    generate_new_records,
 )
 from trading_server.exception_handlers import (
     incorrect_password_handler,
@@ -43,7 +46,16 @@ from trading_server.models import (
 )
 from trading_server.payloads import AmountPayload
 
-app = FastAPI()
+
+# ONLY DEBUG PURPOSES
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    for product in get_products():
+        asyncio.create_task(generate_new_records(product.id))
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 logger = getLogger("uvicorn")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -214,12 +226,22 @@ async def get_product_records_(
     to_: Annotated[datetime, Query(alias="to", default_factory=datetime.now)],
 ) -> ProductRecordsModel:
     records = get_records(product_id, from_=from_, to_=to_)
-    return ProductRecordsModel(
-        product_id=product_id,
-        records=[ProductRecordModel(date=date, value=value) for date, value in records],
-        start_date=records[0][0],
-        end_date=records[-1][0],
-    )
+    if records:
+        return ProductRecordsModel(
+            product_id=product_id,
+            records=[
+                ProductRecordModel(date=date, value=value) for date, value in records
+            ],
+            start_date=records[0][0],
+            end_date=records[-1][0],
+        )
+    else:
+        return ProductRecordsModel(
+            product_id=product_id,
+            records=[],
+            start_date=from_,
+            end_date=to_,
+        )
 
 
 @app.get("/products")

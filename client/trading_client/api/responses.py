@@ -39,3 +39,10 @@ class PriceRecordResponse(TypedDict):
     records: list[PriceRecordListEntryResponse]
     date: str
     value: int
+
+
+class MarketItemResponse(TypedDict):
+    """ """
+
+    product: ProductResponse
+    quantity: int

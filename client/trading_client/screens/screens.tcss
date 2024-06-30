@@ -1,4 +1,23 @@
+MarketWidget {
+	background: black;
+}
+
 ProductWidget {
 	layout: grid;
-	grid-size: 2 3;
+	grid-size: 2 2;
+	grid-columns: 3fr 1fr;
+	grid-rows: 3 1fr;
+	height: 50%;
+}
+
+ProductWidget > Label {
+	padding: 1;
+}
+
+#product-name {
+	text-style: bold;
+}
+
+PlotextPlot {
+	color: red;
 }

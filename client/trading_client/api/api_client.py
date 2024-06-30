@@ -12,7 +12,12 @@ import json
 from .product import Product, PriceRecord
 from .market import Market, MarketItem
 from .user import User, InventoryItem
-from .responses import UserResponse, ProductResponse, PriceRecordResponse
+from .responses import (
+    MarketItemResponse,
+    UserResponse,
+    ProductResponse,
+    PriceRecordResponse,
+)
 from .exceptions import (
     IncorrectCredentials,
     UserAlreadyExists,
@@ -129,7 +134,7 @@ class APIClient:
             params["to"] = to_.isoformat()
 
         response = await self.client.get(
-            f"/{product_id}/records",
+            f"/product/{product_id}/records",
             params=params,
         )
         response.raise_for_status()
@@ -146,6 +151,16 @@ class APIClient:
         response.raise_for_status()
         data: list[ProductResponse] = response.json()
         return [Product(**product) for product in data]
+
+    async def get_market(self) -> Market:
+        response = await self.client.get("/market")
+        response.raise_for_status()
+        data: list[MarketItemResponse] = response.json()
+        supply = [
+            MarketItem(product=Product(**item["product"]), quantity=item["quantity"])
+            for item in data
+        ]
+        return Market(supply=supply)
 
     async def buy_product(self, product_id: int, quantity: int):
         response = await self.client.post(

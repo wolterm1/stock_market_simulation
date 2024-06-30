@@ -6,6 +6,7 @@ from .product import Product
 @dataclass
 class MarketItem:
     """ """
+
     product: Product
     quantity: int
 
@@ -13,4 +14,5 @@ class MarketItem:
 @dataclass
 class Market:
     """ """
-    supply: tuple[MarketItem]
+
+    supply: list[MarketItem]
