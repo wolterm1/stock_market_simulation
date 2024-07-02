@@ -73,9 +73,17 @@ add_executable(main
 # -------------------Pybind---------------------#
 # ----------------------------------------------#
 add_subdirectory(external/pybind11)
+add_subdirectory(external/SQLiteCpp)
+
+
+# Include directories
+include_directories(${PROJECT_SOURCE_DIR}/external/SQLiteCpp/include)
+
+# Link libraries
+target_link_libraries(main SQLiteCpp)
 
 # Baue pybind11-Schnittstelle
 
 # ----------------------------------------------#
-# -------------Erzeuge Testprogramme------------#
+# ---------m----Erzeuge Testprogramme------------#
 # ----------------------------------------------#

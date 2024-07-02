@@ -5,11 +5,11 @@ namespace ProjectStockMarket {
 
 class Product {
  public:
-  Product(int id, std::string name);
+  Product(int i, std::string n);
 
   int id;
-  int name;
-  void getPrice();
+  std::string name;
+  int getPrice();
 };
 
 }  // namespace ProjectStockMarket

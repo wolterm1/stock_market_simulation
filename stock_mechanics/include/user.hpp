@@ -14,6 +14,10 @@ class User {
   bool buyProduct(Product product, int count);
   bool sellProduct(int product_id, int count);
   bool sellProduct(Product product, int count);
+  int getId();
+  std::string getName();
+  int getBalance();
+  std::vector<ProductEntry> getInventory();
 
  private:
   int m_id;

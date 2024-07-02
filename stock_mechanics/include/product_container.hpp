@@ -1,19 +1,13 @@
 #pragma once
 #include <vector>
 
-#include "product.hpp"
+#include "product_entry.hpp"
 
 namespace ProjectStockMarket {
 
 class ProductContainer {
- private:
-  typedef struct {
-    Product product;
-    int count;
-  } ProductCountEntry;
-
  public:
-  ProductContainer(std::vector<Product> product_list);
+  ProductContainer(std::vector<ProductEntry> product_list);
   ProductContainer();
 
   bool hasProduct(Product p);
@@ -24,8 +18,8 @@ class ProductContainer {
   void removeProduct(Product p, int count);
   void removeProduct(int product_id, int count);
 
-  std::vector<ProductCountEntry> getProductCountEntriesWithGivenName(std::string product_name);
-  std::vector<ProductCountEntry> getAllProductCountEntries();
+  std::vector<ProductEntry> getProductCountEntriesWithGivenName(std::string product_name);
+  std::vector<ProductEntry> getAllProductCountEntries();
   Product getProduct(int product_id);
   std::string getProductName(int product_id);
   int getProductPrize(int product_id);
@@ -35,7 +29,7 @@ class ProductContainer {
   int getSize();
 
  private:
-  std::vector<ProductCountEntry> m_storage;
+  std::vector<ProductEntry> m_storage;
 };
 
 }  // namespace ProjectStockMarket
