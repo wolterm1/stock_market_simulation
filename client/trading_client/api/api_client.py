@@ -1,9 +1,18 @@
 from datetime import datetime
+from functools import wraps
 import httpx
 
 import asyncio
 from dataclasses import dataclass
-from typing import AsyncGenerator, Generator, Optional, TypedDict
+from typing import (
+    AsyncGenerator,
+    Callable,
+    Generator,
+    Iterable,
+    Optional,
+    Type,
+    TypedDict,
+)
 
 import random
 import logging
@@ -27,6 +36,30 @@ from .exceptions import (
 )
 
 from textual import log
+
+
+# write a decorator function that takes in a list of exceptions catches them and retries the api call. The decorator should be applicable to a class to effect all async functions. It should also take a max_retries function
+
+
+def retry_on_exception(
+    exceptions: Iterable[Type[Exception]], max_retries: int
+) -> Callable:
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            retries = 0
+            while retries < max_retries:
+                try:
+                    return await func(*args, **kwargs)
+                except tuple(exceptions) as e:
+                    logging.error(f"Caught exception {e}. Retrying...")
+                    retries += 1
+                    if retries == max_retries:
+                        raise e
+
+        return wrapper
+
+    return decorator
 
 
 class BearerAuth(httpx.Auth):
@@ -54,6 +87,17 @@ class NoAuth(httpx.Auth):
 
     def __init__(self):
         pass
+
+
+CATCH = [
+    httpx.RemoteProtocolError,
+    httpx.ReadError,
+    httpx.ConnectError,
+    httpx.NetworkError,
+    httpx.ProtocolError,
+]
+
+MAX_RETRIES = 5
 
 
 class APIClient:
@@ -95,6 +139,7 @@ class APIClient:
 
         self.client.auth = NoAuth()
 
+    @retry_on_exception(CATCH, MAX_RETRIES)
     async def get_user(self) -> User:
         response = await self.client.get("/user")
 
@@ -114,6 +159,7 @@ class APIClient:
             inventory=inventory,
         )
 
+    @retry_on_exception(CATCH, MAX_RETRIES)
     async def get_product(self, product_id: int) -> Product:
         response = await self.client.get(f"/product/{product_id}")
 
@@ -124,6 +170,7 @@ class APIClient:
         data: ProductResponse = response.json()
         return Product(**data)
 
+    @retry_on_exception(CATCH, MAX_RETRIES)
     async def get_records(
         self, product_id: int, from_: datetime, to_: datetime | None = None
     ) -> list[PriceRecord]:
@@ -146,20 +193,19 @@ class APIClient:
             for record in data["records"]
         ]
 
+    @retry_on_exception(CATCH, MAX_RETRIES)
     async def get_products(self) -> list[Product]:
         response = await self.client.get("/products")
         response.raise_for_status()
         data: list[ProductResponse] = response.json()
         return [Product(**product) for product in data]
 
+    @retry_on_exception(CATCH, MAX_RETRIES)
     async def get_market(self) -> Market:
         response = await self.client.get("/market")
         response.raise_for_status()
         data: list[MarketItemResponse] = response.json()
-        supply = [
-            MarketItem(product=Product(**item["product"]), quantity=item["quantity"])
-            for item in data
-        ]
+        supply = {item["product_id"]: item["quantity"] for item in data}
         return Market(supply=supply)
 
     async def buy_product(self, product_id: int, quantity: int):

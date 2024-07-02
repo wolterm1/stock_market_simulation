@@ -28,6 +28,7 @@ from trading_server._so._market_logic import (
     get_records,
     get_user,
     generate_new_records,
+    pregenerate_records,
 )
 from trading_server.exception_handlers import (
     incorrect_password_handler,
@@ -50,6 +51,7 @@ from trading_server.payloads import AmountPayload
 # ONLY DEBUG PURPOSES
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    pregenerate_records()
     for product in get_products():
         asyncio.create_task(generate_new_records(product.id))
     yield

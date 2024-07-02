@@ -11,8 +11,11 @@ class MarketItem:
     quantity: int
 
 
+Supply = dict[int, int]
+
+
 @dataclass
 class Market:
     """ """
 
-    supply: list[MarketItem]
+    supply: Supply

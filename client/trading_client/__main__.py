@@ -23,6 +23,8 @@ class TradingApp(App):
 
     CSS_PATH = ["style.tcss", "screens/screens.tcss"]
 
+    BINDINGS = [("q", "quit", "Quit")]
+
     api = APIClient("http://localhost:8080")
 
     @work
@@ -32,6 +34,9 @@ class TradingApp(App):
 
     async def on_unmount(self) -> None:
         await self.api.client.aclose()
+
+    def action_quit(self):
+        self.exit()
 
 
 if __name__ == "__main__":

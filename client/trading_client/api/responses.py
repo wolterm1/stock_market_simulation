@@ -44,5 +44,5 @@ class PriceRecordResponse(TypedDict):
 class MarketItemResponse(TypedDict):
     """ """
 
-    product: ProductResponse
+    product_id: int
     quantity: int
