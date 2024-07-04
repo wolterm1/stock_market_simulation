@@ -4,9 +4,13 @@
 
 namespace ProjectStockMarket {
 
-    struct Account {
-        std::string username;
-        std::string password;  
-    };
+struct Account {
+  std::string username;
+  std::string password;
 
-}
+  Account(std::string u, std::string p) : username(u), password(p) {}
+  Account(const Account& a) : username(a.username), password(a.password) {}
+  Account() {}
+};
+
+}  // namespace ProjectStockMarket

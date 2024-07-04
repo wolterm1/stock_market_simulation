@@ -75,7 +75,6 @@ add_executable(main
 add_subdirectory(external/pybind11)
 add_subdirectory(external/SQLiteCpp)
 
-
 # Include directories
 include_directories(${PROJECT_SOURCE_DIR}/external/SQLiteCpp/include)
 

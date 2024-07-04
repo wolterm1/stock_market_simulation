@@ -1,14 +1,15 @@
 #pragma once
 #include <string>
 
-#include "product_container.hpp"
+#include "account.hpp"
+#include "product_entry.hpp"
 namespace ProjectStockMarket {
 
 class User {
  public:
   User();
-  User(int id, std::string name, int b);
-  User(int id, std::string name, int b, ProductContainer inv);
+  User(Account a, std::string name, int b);
+  User(Account a, std::string name, int b, std::vector<ProductEntry> inv);
 
   bool buyProduct(int product_id, int count);
   bool buyProduct(Product product, int count);
@@ -18,12 +19,13 @@ class User {
   std::string getName();
   int getBalance();
   std::vector<ProductEntry> getInventory();
+  Account getAccount();
 
  private:
-  int m_id;
+  Account m_account;
   std::string m_name;
   int m_balance;
-  ProductContainer m_inventory;
+  std::vector<ProductEntry> m_inventory;
 };
 
 }  // namespace ProjectStockMarket
