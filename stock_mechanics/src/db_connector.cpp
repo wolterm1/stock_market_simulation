@@ -132,12 +132,12 @@ User DBConnector::findUser(Account p_account) {
   }
 }
 
-void DBConnector::updateUser(User p_oldUser, User p_newUser) {
+void DBConnector::updateUser(User p_user, std::string p_name, int p_balance) {
   try {
     SQLite::Statement query(m_database, "UPDATE User SET name = ?, balance = ? WHERE id = ?");
-    query.bind(1, p_newUser.getName());
-    query.bind(2, p_newUser.getBalance());
-    query.bind(3, p_oldUser.getId());
+    query.bind(1, p_name);
+    query.bind(2, p_balance);
+    query.bind(3, p_user.getId());
     query.exec();
   } catch (const std::exception& e) {
     throw std::runtime_error("Failed to update user: " + std::string(e.what()));

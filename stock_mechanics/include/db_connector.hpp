@@ -41,10 +41,8 @@ class DBConnector {
    * @brief Updates an existing user in the database.
    * If the User isn't registered it throws an error.
    *
-   * @param old_user The user to be updated.
-   * @param newUser The new user data.
    */
-  static void updateUser(User old_user, User newUser);
+  static void updateUser(User p_user, std::string p_name, int p_balance);
 
   /**
    * @brief Finds a user by their account information.

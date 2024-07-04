@@ -80,8 +80,7 @@ void TEST_GET_LATEST_PRICE_FROM_PRODUCT() {
 
 void TEST_UPDATING_USER(ProjectStockMarket::User user) {
   std::cout << "\nTEST: TEST_UPDATING_USER" << std::endl;
-  ProjectStockMarket::User newUser(user.getAccount(), user.getName(), 999);
-  ProjectStockMarket::DBConnector::updateUser(user, newUser);
+  ProjectStockMarket::DBConnector::updateUser(user, user.getName(), 999);
   std::cout << "Updated dummy_user with id 1 balance to 999" << std::endl;
 }
 

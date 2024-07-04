@@ -32,7 +32,7 @@ int User::getId() {
 }
 std::string User::getName() {
   try {
-    m_name = DBConnector::getUserBalance(m_account);
+    m_name = DBConnector::getUserName(m_account);
   } catch (const std::exception& e) {
   }
 
