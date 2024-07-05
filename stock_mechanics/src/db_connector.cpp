@@ -8,12 +8,13 @@ namespace ProjectStockMarket {
 SQLite::Database DBConnector::m_database("stockmarket.db",
                                          SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 DBConnector::DBConnector() {
-  std::cout << "---database.db file connected---" << std::endl;
+  std::cout << " -> database.db Initialized!" << std::endl;
 }
 
 DBConnector DBConnector::init = DBConnector::initialize();
 // statically initializes the class without having ot have an instance of it
 DBConnector DBConnector::initialize() {
+  std::cout << "trying to initialize database...";
   createTables();
   return DBConnector();
 }
@@ -64,7 +65,6 @@ void DBConnector::createTables() {
   } catch (const std::exception& e) {
     throw std::runtime_error("Failed to create tables: " + std::string(e.what()));
   }
-  std::cout << "---created tables---" << std::endl;
 }
 
 void DBConnector::addUser(User p_user) {

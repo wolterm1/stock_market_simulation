@@ -11,10 +11,9 @@ class User {
   User(Account a, std::string name, int b);
   User(Account a, std::string name, int b, std::vector<ProductEntry> inv);
 
-  bool buyProduct(int product_id, int count);
-  bool buyProduct(Product product, int count);
-  bool sellProduct(int product_id, int count);
-  bool sellProduct(Product product, int count);
+  void buyProduct(ProductEntry p_entry);
+  void sellProduct(ProductEntry p_entry);
+  void increaseBalance(int amount);
   int getId();
   std::string getName();
   int getBalance();

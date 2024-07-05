@@ -64,8 +64,8 @@ file(GLOB SRC_FILES
 # Baue das Programm 'demo1' aus den Quellen
 # examples/demo1.cpp und allen Quelldateien in
 # SRC_FILES (also alle im Verzeichnis src/)
-add_executable(main
-  examples/main.cpp
+add_executable(testDB
+  examples/test_database.cpp
   ${SRC_FILES}
 )
 
@@ -79,7 +79,7 @@ add_subdirectory(external/SQLiteCpp)
 include_directories(${PROJECT_SOURCE_DIR}/external/SQLiteCpp/include)
 
 # Link libraries
-target_link_libraries(main SQLiteCpp)
+target_link_libraries(testDB SQLiteCpp)
 
 # Baue pybind11-Schnittstelle
 

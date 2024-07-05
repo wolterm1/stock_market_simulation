@@ -9,6 +9,8 @@ class MarketPlace {
  public:
   std::vector<ProductEntry> getInventory();
   std::vector<Product> getAllProduct();
+  void addProductEntry(std::string name, int price, int count);
+  void addProductEntry(ProductEntry p_entry);
 
   MarketPlace(int limit_record_entries);
 
