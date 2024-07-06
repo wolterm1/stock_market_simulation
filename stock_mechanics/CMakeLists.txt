@@ -69,6 +69,11 @@ add_executable(testDB
   ${SRC_FILES}
 )
 
+add_executable(authmain
+  examples/authmain.cpp
+  ${SRC_FILES}
+)
+
 # ----------------------------------------------#
 # -------------------Pybind---------------------#
 # ----------------------------------------------#
@@ -79,7 +84,8 @@ add_subdirectory(external/SQLiteCpp)
 include_directories(${PROJECT_SOURCE_DIR}/external/SQLiteCpp/include)
 
 # Link libraries
-target_link_libraries(testDB SQLiteCpp)
+target_link_libraries(test_database SQLiteCpp)
+target_link_libraries(authmain SQLiteCpp)
 
 # Baue pybind11-Schnittstelle
 
