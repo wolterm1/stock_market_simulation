@@ -194,6 +194,10 @@ class DBConnector {
    */
   static int getLatestRecordPrice(Product product);
 
+  static void addAccountToken(Account a, std::string token);
+
+  static void removeTokenFromAccountDB(std::string token);
+
  private:
   /**
    * @brief Creates the necessary tables in the database.

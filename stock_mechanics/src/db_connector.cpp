@@ -12,7 +12,7 @@ DBConnector::DBConnector() {
 }
 
 DBConnector DBConnector::init = DBConnector::initialize();
-// statically initializes the class without having ot have an instance of it
+// statically initializes the class without having an instance of it
 DBConnector DBConnector::initialize() {
   createTables();
   return DBConnector();
@@ -25,7 +25,8 @@ void DBConnector::createTables() {
         "CREATE TABLE IF NOT EXISTS Account ("
         "id INTEGER PRIMARY KEY AUTOINCREMENT, "
         "username TEXT NOT NULL UNIQUE, "
-        "password TEXT NOT NULL);");
+        "password TEXT NOT NULL, "
+        "token TEXT);");
     // User
     m_database.exec(
         "CREATE TABLE IF NOT EXISTS User ("
@@ -489,6 +490,41 @@ int DBConnector::getLatestRecordPrice(Product p_product) {
     }
   } catch (const std::exception& e) {
     throw e;
+  }
+}
+
+void DBConnector::addAccountToken(Account p_a, std::string p_token) {
+  User user = DBConnector::findUser(p_a);
+  try {
+    SQLite::Statement query(m_database,
+                            "UPDATE Account "
+                            "SET token = ? "
+                            "WHERE id = ?;");
+    query.bind(1, p_token);
+    query.bind(2, user.getId());
+    query.exec();
+
+  } catch (const std::exception& e) {
+    throw std::runtime_error("" + std::string(e.what()));
+  }
+}
+
+void DBConnector::removeTokenFromAccountDB(std::string p_token) {
+  try {
+    SQLite::Statement query(m_database,
+                            "UPDATE Account "
+                            "SET token = NULL "
+                            "WHERE token = ?;");
+    query.bind(1, p_token);
+    query.exec();
+    int changes = m_database.getChanges();
+    if (changes <= 0) {
+      throw std::runtime_error("token not valid");
+    } else if (changes > 1) {
+      throw std::runtime_error("duplicate token was removed");
+    }
+  } catch (const std::exception& e) {
+    throw std::runtime_error("" + std::string(e.what()));
   }
 }
 
