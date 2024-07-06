@@ -137,7 +137,6 @@ class DBConnector {
    * @return A vector of all products.
    */
   static std::vector<Product> getAllProducts();
-
   /**
    * @brief Adds a product entry to a user's inventory.
    *

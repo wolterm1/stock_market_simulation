@@ -1,17 +1,23 @@
 #include "db_connector.hpp"
 
+#include <chrono>
+#include <functional>
 #include <iostream>
 #include <stdexcept>
+#include <thread>
 
 namespace ProjectStockMarket {
 
 SQLite::Database DBConnector::m_database("stockmarket.db",
                                          SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 DBConnector::DBConnector() {
+  m_database.exec("PRAGMA busy_timeout = 5000;");
+  m_database.exec("PRAGMA journal_mode = WAL;");
   std::cout << " -> database.db Initialized!" << std::endl;
 }
 
 DBConnector DBConnector::init = DBConnector::initialize();
+
 // statically initializes the class without having ot have an instance of it
 DBConnector DBConnector::initialize() {
   std::cout << "trying to initialize database...";
