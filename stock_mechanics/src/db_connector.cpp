@@ -503,7 +503,10 @@ void DBConnector::addAccountToken(Account p_a, std::string p_token) {
     query.bind(1, p_token);
     query.bind(2, user.getId());
     query.exec();
-
+    int changes = m_database.getChanges();
+    if (changes <= 0) {
+      throw std::runtime_error("account not found or invalid token");
+    }
   } catch (const std::exception& e) {
     throw std::runtime_error("" + std::string(e.what()));
   }
@@ -526,6 +529,48 @@ void DBConnector::removeTokenFromAccountDB(std::string p_token) {
   } catch (const std::exception& e) {
     throw std::runtime_error("" + std::string(e.what()));
   }
+}
+
+//!!!!!!!!!!!!!!! User hier unvollständig returned, vector<InventoryEntry> fehlt!!!!!!
+
+User DBConnector::getUser(std::string p_token) {
+  // first query gets the id of the accout associated with token and construct account
+  // second query gets user data by that account, which get used to construct user object
+  int account_id;
+  std::string account_name;
+  std::string account_password;
+  try {
+    SQLite::Statement id_query(m_database, "SELECT * FROM Account WHERE token = ? ;");
+    id_query.bind(1, p_token);
+    if (id_query.executeStep()) {
+      account_id = id_query.getColumn(0).getInt();
+      account_name = id_query.getColumn(1).getText();
+      account_password = id_query.getColumn(2).getText();
+    } else {
+      throw std::runtime_error("invalid token");
+    }
+  } catch (const std::exception& e) {
+    throw std::runtime_error("id_query " + std::string(e.what()));
+  }
+
+  int user_balance;
+  std::string user_display_name;
+  try {
+    SQLite::Statement user_query(m_database, "SELECT * FROM User WHERE id = ? ;");
+    user_query.bind(1, account_id);
+    if (user_query.executeStep()) {
+      user_display_name = user_query.getColumn(1).getText();
+      user_balance = user_query.getColumn(2).getInt();
+    } else {
+      throw std::runtime_error("invalid id");
+    }
+  } catch (const std::exception& e) {
+    throw std::runtime_error("user_query" + std::string(e.what()));
+  }
+  // jetzt haben wir alles um account zu konstructen um dann user zu konstructen
+  Account acc(account_name, account_password);
+  User usr(acc, user_display_name, user_balance);
+  return usr;
 }
 
 }  // namespace ProjectStockMarket

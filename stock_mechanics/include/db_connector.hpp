@@ -198,6 +198,8 @@ class DBConnector {
 
   static void removeTokenFromAccountDB(std::string token);
 
+  static User getUser(std::string token);
+
  private:
   /**
    * @brief Creates the necessary tables in the database.
