@@ -113,6 +113,7 @@ User DBConnector::findUser(Account p_account) {
     findAccountId.bind(1, p_account.username);
     findAccountId.bind(2, p_account.password);
 
+    // muss dass hier nested if sein?, wenn kein account dann thrown wir sowieso..
     if (findAccountId.executeStep()) {
       int acc_id = findAccountId.getColumn(0).getInt();
       SQLite::Statement query(m_database, "SELECT name, balance FROM User WHERE id = ?");
