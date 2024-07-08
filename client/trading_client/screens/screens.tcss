@@ -1,0 +1,156 @@
+$accent: #ff15;
+TradingScreen {
+}
+
+Button {
+	margin: 0;
+	padding: 0;
+	border: none;
+}
+
+MarketWidget {
+	padding: 0;
+	margin: 0;
+
+}
+
+MarketWidget > VerticalScroll {
+	scrollbar-size: 1 1;
+}
+
+ProductWidget {
+	padding: 0;
+	margin: 0;
+	layout: grid;
+	grid-size: 2 2;
+	grid-columns: 1fr 20;
+	# min-height: 15;
+	# height: 25%;
+	# max-height: 25;
+	grid-rows: 1 1fr;
+	background: black 20%;
+	layer: below;
+}
+
+ProductWidget > Label {
+	# padding: 1;
+	column-span: 2;
+	padding: 0 0 0 1;
+	margin: 0 0 0 0;
+	width: 100%;
+}
+
+#product-name {
+	text-style: bold italic;
+}
+
+PlotextPlot  {
+	padding: 0 1 0 1;
+	margin: 0;
+	background: transparent;
+}
+
+TabPane {
+	padding: 0 1 0 1;
+}
+
+TradeWidget {
+	layout: grid;
+	grid-size: 2 3;
+	grid-rows: 1;
+	height: 80%;
+	width: 100%;
+	margin: 0 1 1 0;
+	padding: 1 0 1 0;
+	border-subtitle-color: $text;
+	border-subtitle-style: italic;
+
+	& Input {
+		margin: 0;
+		padding: 0 0 0 1;
+		border: none;
+		height: 1;
+		width: 9;
+		text-align: left;
+	}
+
+	& Button {
+
+		width: auto;
+
+		&:hover {
+			tint: black 30%;
+			# color: $primary;
+		}
+	}
+}
+
+
+
+UserInfoWidget {
+	width: 20%;
+	min-width: 22;
+	max-width: 40;
+	dock: right;
+
+	&> #heading {
+		background: $accent;
+		width: 100%;
+
+		&> #logout-button {
+			width: auto;
+			background: transparent;
+
+			&:hover {
+				background: black 20%;
+			}
+		}
+
+		&> #logged-in-as-label {
+			width: auto;
+			content-align-horizontal: left;
+			text-style: bold italic;
+		}
+
+	}
+}
+
+#balance-label {
+	padding: 0 0 0 1;
+}
+
+InventoryWidget {
+	width: 100%;
+	&> Label {
+		text-style: bold italic;
+		background: $accent;
+		width: 100%;
+		text-align: center;
+	}
+	&> Grid {
+		grid-size: 3;
+		grid-columns: 3 1fr 8;
+		grid-rows: 1;
+
+		&> #product-label {
+			padding: 0 0 0 1;
+			column-span: 2;
+		}
+
+		&> #product-label, #quantity-label {
+			text-align: left;
+			width: 100%;
+			background: $accent 20%;
+		}
+
+		&> .inventory-product {
+			padding: 0 0 0 1;
+			width: 100%;
+		}
+
+		&> .inventory-product-quantity {
+			text-align: center;
+			width: 100%;
+		}
+	}
+}

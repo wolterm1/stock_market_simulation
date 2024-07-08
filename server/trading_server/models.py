@@ -39,7 +39,7 @@ class UserModel(BaseModel):
 
     user_id: int = Field(examples=[1, 2])
     user_name: str = Field(examples=["Alice", "Bob"])
-    money: int = Field(examples=[1000, 2000])
+    balance: int = Field(examples=[1000, 2000])
     inventory: list[InventoryItemModel]
 
 

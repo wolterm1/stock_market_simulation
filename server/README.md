@@ -29,9 +29,9 @@ pip install -e server
 ```
 3. Run server (with optional `--reload`)
 ```bash
-uvicorn trading_server.__main__:app --port 8080 --reload
+uvicorn trading_server.__main__:app --port 8080 --reload --log-config trading_server/log.ini
 # if this doesnt work
-python -m uvicorn trading_server.__main__:app --port 8080 --reload
+python -m uvicorn trading_server.__main__:app --port 8080 --reload --log-config trading_server/log.ini
 # or
 python -m trading_server
 ```
