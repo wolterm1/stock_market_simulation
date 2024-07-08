@@ -37,10 +37,9 @@ PYBIND11_MODULE(market_logic, m) {
 
   py::class_<User>(m, "User")
       .def(py::init<Account, std::string, int>())
-      .def(py::init<Account, std::string, int, std::vector<ProductEntry>>())
       .def(py::init<>())
       .def("get_id", &User::getId)
-      .def("get_name", &User::getId)
+      .def("get_name", &User::getName)
       .def("buy_product", &User::buyProduct)
       .def("sell_product", &User::sellProduct)
       .def("get_balance", &User::getBalance)
