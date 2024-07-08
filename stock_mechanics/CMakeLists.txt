@@ -80,6 +80,25 @@ add_executable(authmain
 add_subdirectory(external/pybind11)
 add_subdirectory(external/SQLiteCpp)
 
+pybind11_add_module(market_logic
+  pybindings/pybind_market_logic.cpp
+  ${SRC_FILES}
+)
+
+
+pybind11_add_module(auth
+  pybindings/pybind_auth.cpp
+  ${SRC_FILES}
+)
+
+install(TARGETS market_logic
+  COMPONENT python
+  DESTINATION "{PROJECT_SOURCE_DIR}/server"
+)
+install(TARGETS auth
+  COMPONENT python
+  DESTINATION "{PROJECT_SOURCE_DIR}/server"
+)
 # Include directories
 include_directories(${PROJECT_SOURCE_DIR}/external/SQLiteCpp/include)
 
