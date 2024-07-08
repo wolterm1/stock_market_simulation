@@ -88,7 +88,7 @@ class DBConnector {
    * @return The product price.
    */
   static int getProductPrice(Product product);
-
+  static void setProductCurrentPrice(Product product, int price);
   /**
    * @brief Gets the user ID from the database.
    * Throws error if not found.
@@ -193,9 +193,21 @@ class DBConnector {
    */
   static int getLatestRecordPrice(Product product);
 
+  /**
+   * @brief adds a temporary token for a account in Account-db
+   * @param Account with username and password
+   * @param token string to insert
+   */
   static void addAccountToken(Account a, std::string token);
 
+  /// @brief sets token entry in Account for given token to NULL
+  /// @param token string to remove
   static void removeTokenFromAccountDB(std::string token);
+
+  /// @brief returns the User whose account is assoiated with token
+  /// @param token string
+  /// @return the User whith account that contains token
+  static User getUser(std::string token);
 
  private:
   /**

@@ -1,3 +1,5 @@
+#include <cstdlib>  // For rand() and srand()
+#include <ctime>    // For time(0)
 #include <iostream>
 
 #include "account.hpp"
@@ -24,9 +26,14 @@ void TEST_ADDING_RECORD_TO_PRODUCT() {
   ProjectStockMarket::Product p("ball");
 
   for (int i = 0; i < 10; i++) {
-    ProjectStockMarket::Record ent(i, 30);
+    // Initialize random seed
+    srand(time(0));
+    // Generate a random number between 10 and 50
+    int randomNumber = rand() % 41 + 10;  // rand() % (max - min + 1) + min
+    ProjectStockMarket::Record ent(i, randomNumber);
     ProjectStockMarket::DBConnector::addRecord(p, ent);
   }
+  std::cout << "CURRENT BALL PRICE: " << p.getPrice() << std::endl;
 }
 
 void TEST_READING_ALL_RECORDS() {
@@ -55,7 +62,7 @@ void TEST_UPDATING_USER(ProjectStockMarket::User user) {
 }
 
 void TEST_FINDING_USER_AND_UPDATING_HIM() {
-  std::cout << "\nTEST: TEST_FINDING_USER" << std::endl;
+  std::cout << "\nTEST: TEST_FINDING_USER_AND_UPDATING_HIM" << std::endl;
   ProjectStockMarket::Account a("0", "password");
   ProjectStockMarket::User user = ProjectStockMarket::DBConnector::findUser(a);
   int id = user.getId();
@@ -113,7 +120,12 @@ void TEST_GETTING_ALL_PRODUCTS() {
       ProjectStockMarket::DBConnector::getAllProducts();
 }
 
+#include "market_place.hpp"
+
 int main() {
+  ProjectStockMarket::MarketPlace market(1000);
+  market.startPriceUpdate();
+
   try {
     TEST_ADDING_ACCOUNTS();
     std::cout << "-> PASSED!" << std::endl;
@@ -208,6 +220,9 @@ int main() {
   } catch (std::exception& e) {
     std::cerr << "-> FAILED!" << std::endl;
     std::cout << e.what() << std::endl;
+  }
+  while (true) {
+    TEST_ADDING_RECORD_TO_PRODUCT();
   }
 
   return 0;

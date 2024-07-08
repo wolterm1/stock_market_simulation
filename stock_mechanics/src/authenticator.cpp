@@ -31,8 +31,7 @@ void Authenticator::logout(std::string p_token) {
 }
 
 User Authenticator::getUserByToken(std::string p_token) {
-  DBConnector::getUserByToken(p_token);
-  return User();
+  return DBConnector::getUser(p_token);
 }
 
 std::string Authenticator::generateRandomToken(size_t p_size) {

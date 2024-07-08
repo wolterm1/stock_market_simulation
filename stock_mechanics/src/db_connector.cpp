@@ -13,7 +13,7 @@ SQLite::Database DBConnector::m_database("stockmarket.db",
 DBConnector::DBConnector() {
   m_database.exec("PRAGMA busy_timeout = 5000;");
   m_database.exec("PRAGMA journal_mode = WAL;");
-  std::cout << " -> database.db Initialized!" << std::endl;
+  std::cout << " -> stockmarket.db Initialized!" << std::endl;
 }
 
 DBConnector DBConnector::init = DBConnector::initialize();
@@ -68,8 +68,39 @@ void DBConnector::createTables() {
         "date_time INTEGER NOT NULL, "
         "price INTEGER NOT NULL, "
         "FOREIGN KEY(product_id) REFERENCES Product(id));");
+    // Current Price
+    m_database.exec(
+        "CREATE TABLE IF NOT EXISTS CurrentPrice ("
+        "product_id INTEGER, "
+        "price INTEGER NOT NULL, "
+        "FOREIGN KEY(product_id) REFERENCES Product(id));");
   } catch (const std::exception& e) {
     throw std::runtime_error("Failed to create tables: " + std::string(e.what()));
+  }
+}
+
+void DBConnector::setProductCurrentPrice(Product p_product, int p_price) {
+  try {
+    if (p_price < 0) throw std::runtime_error("price cant be below 0");
+    SQLite::Statement findProductId(m_database,
+                                    "SELECT price FROM CurrentPrice WHERE product_id = ?");
+    findProductId.bind(1, p_product.getId());
+
+    if (findProductId.executeStep()) {
+      SQLite::Statement updateProductPrice(
+          m_database, "UPDATE CurrentPrice SET price = ? WHERE product_id = ?");
+      updateProductPrice.bind(1, p_price);
+      updateProductPrice.bind(2, p_product.getId());
+      updateProductPrice.exec();
+    } else {
+      SQLite::Statement registerProduct(
+          m_database, "INSERT INTO CurrentPrice (product_id, price) VALUES (?,?)");
+      registerProduct.bind(1, p_product.getId());
+      registerProduct.bind(2, p_price);
+      registerProduct.exec();
+    }
+  } catch (const std::exception& e) {
+    throw std::runtime_error("Failed to add price to CurrentPrice: " + std::string(e.what()));
   }
 }
 
@@ -118,6 +149,7 @@ User DBConnector::findUser(Account p_account) {
     findAccountId.bind(1, p_account.username);
     findAccountId.bind(2, p_account.password);
 
+    // muss dass hier nested if sein?, wenn kein account dann thrown wir sowieso..
     if (findAccountId.executeStep()) {
       int acc_id = findAccountId.getColumn(0).getInt();
       SQLite::Statement query(m_database, "SELECT name, balance FROM User WHERE id = ?");
@@ -214,9 +246,8 @@ int DBConnector::getProductId(Product p_product) {
 }
 
 int DBConnector::getProductPrice(Product p_product) {
-  SQLite::Statement findProductId(
-      m_database,
-      "SELECT price FROM PriceRecord WHERE product_id = ? ORDER BY entry_num DESC LIMIT 1");
+  SQLite::Statement findProductId(m_database,
+                                  "SELECT price FROM CurrentPrice WHERE product_id = ?");
   findProductId.bind(1, p_product.getId());
 
   if (findProductId.executeStep()) {
@@ -262,6 +293,7 @@ void DBConnector::addProductEntryToMarket(ProductEntry p_entry) {
       updateProduct.exec();
       Record newRecord(p_entry.product.getPrice());
       addRecord(p_entry.product, newRecord);
+
     } else {
       SQLite::Statement query(m_database,
                               "INSERT INTO Marketplace (product_id, count) VALUES (?, ?)");
@@ -270,6 +302,7 @@ void DBConnector::addProductEntryToMarket(ProductEntry p_entry) {
       query.exec();
       Record newRecord(p_entry.product.getStartingPrice());
       addRecord(p_entry.product, newRecord);
+      setProductCurrentPrice(p_entry.product, newRecord.price);
     }
   } catch (const std::exception& e) {
     throw std::runtime_error("Failed to add product to market: " + std::string(e.what()));
@@ -508,7 +541,10 @@ void DBConnector::addAccountToken(Account p_a, std::string p_token) {
     query.bind(1, p_token);
     query.bind(2, user.getId());
     query.exec();
-
+    int changes = m_database.getChanges();
+    if (changes <= 0) {
+      throw std::runtime_error("account not found or invalid token");
+    }
   } catch (const std::exception& e) {
     throw std::runtime_error("" + std::string(e.what()));
   }
@@ -531,6 +567,48 @@ void DBConnector::removeTokenFromAccountDB(std::string p_token) {
   } catch (const std::exception& e) {
     throw std::runtime_error("" + std::string(e.what()));
   }
+}
+
+//!!!!!!!!!!!!!!! User hier unvollständig returned, vector<InventoryEntry> fehlt!!!!!!
+
+User DBConnector::getUser(std::string p_token) {
+  // first query gets the id of the accout associated with token and construct account
+  // second query gets user data by that account, which get used to construct user object
+  int account_id;
+  std::string account_name;
+  std::string account_password;
+  try {
+    SQLite::Statement id_query(m_database, "SELECT * FROM Account WHERE token = ? ;");
+    id_query.bind(1, p_token);
+    if (id_query.executeStep()) {
+      account_id = id_query.getColumn(0).getInt();
+      account_name = id_query.getColumn(1).getText();
+      account_password = id_query.getColumn(2).getText();
+    } else {
+      throw std::runtime_error("invalid token");
+    }
+  } catch (const std::exception& e) {
+    throw std::runtime_error("id_query " + std::string(e.what()));
+  }
+
+  int user_balance;
+  std::string user_display_name;
+  try {
+    SQLite::Statement user_query(m_database, "SELECT * FROM User WHERE id = ? ;");
+    user_query.bind(1, account_id);
+    if (user_query.executeStep()) {
+      user_display_name = user_query.getColumn(1).getText();
+      user_balance = user_query.getColumn(2).getInt();
+    } else {
+      throw std::runtime_error("invalid id");
+    }
+  } catch (const std::exception& e) {
+    throw std::runtime_error("user_query" + std::string(e.what()));
+  }
+  // jetzt haben wir alles um account zu konstructen um dann user zu konstructen
+  Account acc(account_name, account_password);
+  User usr(acc, user_display_name, user_balance);
+  return usr;
 }
 
 }  // namespace ProjectStockMarket

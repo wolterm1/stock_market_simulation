@@ -54,8 +54,24 @@ void TEST_LOGOUT() {
   }
 }
 
+void TEST_GET_USER_BY_TOKEN() {
+  std::string inpt;
+  std::string token;
+  std::cout << "Do you want to find a User? y/n:";
+  std::cin >> inpt;
+  if (inpt == "y") {
+    std::cin >> token;
+  }
+  ProjectStockMarket::Authenticator auth;
+
+  ProjectStockMarket::User usr = auth.getUserByToken(token);
+  std::cout << "The found User: \"" << usr.getName() << "\" with id " << usr.getId() << " has "
+            << usr.getBalance() << " money" << std::endl;
+}
+
 int main() {
   TEST_REGISTER();
   TEST_LOGIN();
   TEST_LOGOUT();
+  TEST_GET_USER_BY_TOKEN();
 }
