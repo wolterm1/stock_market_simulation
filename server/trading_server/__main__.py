@@ -93,7 +93,7 @@ async def get_current_user_model(
         for item in user.inventory
     ]
     return UserModel(
-        user_id=user.id, user_name=user.name, money=user.money, inventory=inventory
+        user_id=user.id, user_name=user.name, balance=user.money, inventory=inventory
     )
 
 
