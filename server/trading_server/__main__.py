@@ -9,27 +9,8 @@ from pydantic import BaseModel
 from contextlib import asynccontextmanager
 import asyncio
 
-from trading_server._so._auth import (
-    InvalidToken,
-    IncorrectPassword,
-    authenticate_user,
-    find_user_by_token,
-    logout,
-    register,
-)
-from trading_server._so._market_logic import (
-    NotEnoughMoney,
-    OutOfStock,
-    ProductNotFound,
-    User,
-    get_product,
-    get_products,
-    get_market,
-    get_records,
-    get_user,
-    generate_new_records,
-    pregenerate_records,
-)
+from pathlib import Path
+
 from trading_server.exception_handlers import (
     incorrect_password_handler,
     invalid_token_handler,
@@ -47,37 +28,56 @@ from trading_server.models import (
 )
 from trading_server.payloads import AmountPayload
 
+try:
+    from trading_server.modules.auth import (  # type: ignore
+        InvalidToken,
+        IncorrectPassword,
+        Account,
+        authenticate_user,
+        find_user_by_token,
+        logout,
+        register,
+    )
+    from trading_server.modules.market_logic import (  # type: ignore
+        NotEnoughMoney,
+        OutOfStock,
+        ProductNotFound,
+        User,
+        Product,
+        MarketPlace,
+        get_product,
+        get_user,
+    )
 
-# ONLY DEBUG PURPOSES
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    pregenerate_records()
-    for product in get_products():
-        asyncio.create_task(generate_new_records(product.id))
-    yield
+    app = FastAPI()
+except ImportError as e:
+    raise ImportError(
+        "Could not import the shared object file. Please run the build script to \
+            build the shared object file."
+    ) from e
 
-
-app = FastAPI(lifespan=lifespan)
 logger = getLogger("uvicorn")
+
+market = MarketPlace(60 * 60)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
-async def get_current_user_id(token: Annotated[str, Depends(oauth2_scheme)]) -> int:
-    """Find the user id by the token
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> User:
+    """Find the user by the token
 
     Args:
         token (Annotated[str, Depends): Dependency that gets the token from the request
 
     Returns:
-        int: id of the user sending the Request
+        User: User object representing the current user
     """
-    user_id = find_user_by_token(token)
-    return user_id
+    user = find_user_by_token(token)
+    return user
 
 
 async def get_current_user_model(
-    user_id: Annotated[int, Depends(get_current_user_id)]
+    user: Annotated[User, Depends(get_current_user)]
 ) -> UserModel:
     """Get the current user as a UserModel
 
@@ -87,32 +87,34 @@ async def get_current_user_model(
     Returns:
         UserModel: Model describing the current user
     """
-    user = get_user(user_id)
     inventory = [
-        InventoryItemModel(product_id=item["product_id"], quantity=item["quantity"])
-        for item in user.inventory
+        InventoryItemModel(product_id=entry.product.get_id(), quantity=entry.amount)
+        for entry in user.get_inventory()
     ]
     return UserModel(
-        user_id=user.id, user_name=user.name, money=user.money, inventory=inventory
+        user_id=user.get_id(),
+        user_name=user.get_name(),
+        balance=user.get_balance(),
+        inventory=inventory,
     )
 
 
-async def get_current_user(
-    user_id: Annotated[int, Depends(get_current_user_id)]
-) -> User:
-    """Find the current user in the database
+async def get_market_product(product_id: int) -> Product:
+    """Searches the database for the product
 
     Args:
-        user_id (Annotated[int, Depends): Dependency that gets the user id
+        product_id (int): product_id to search for
 
     Returns:
-        User: User object representing the current user
+        Product: Model representing the product
     """
-    db_user = get_user(user_id)
-    return db_user
+    product = get_product(product_id)
+    return product
 
 
-async def get_product_entry(product_id: int) -> ProductModel:
+async def get_product_model(
+    product: Annotated[Product, Depends(get_market_product)]
+) -> ProductModel:
     """Searches the database for the product
 
     Args:
@@ -121,9 +123,8 @@ async def get_product_entry(product_id: int) -> ProductModel:
     Returns:
         ProductModel: Model representing the product
     """
-    product = get_product(product_id)
     return ProductModel(
-        product_id=product.id,
+        product_id=product.get_id(),
         product_name=product.name,
     )
 
@@ -153,7 +154,8 @@ async def index_() -> dict[str, str]:
     """,
 )
 async def login_(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:
-    token = authenticate_user(form_data.username, form_data.password)
+    account = Account(form_data.username, form_data.password)
+    token = authenticate_user(account)
 
     return Token(access_token=token)
 
@@ -168,8 +170,9 @@ async def login_(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> 
 async def register_(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ) -> Token:
-    register(form_data.username, form_data.password)
-    token = authenticate_user(form_data.username, form_data.password)
+    account = Account(form_data.username, form_data.password)
+    register(account, form_data.username)
+    token = authenticate_user(account)
     return Token(access_token=token)
 
 
@@ -205,7 +208,7 @@ async def get_authenticated_user_(
     """,
 )
 async def get_product_by_id_(
-    product: Annotated[ProductModel, Depends(get_product_entry)]
+    product: Annotated[ProductModel, Depends(get_product_model)]
 ) -> ProductModel:
     return product
 
@@ -223,23 +226,24 @@ def _10_minutess_ago() -> datetime:
     """,
 )
 async def get_product_records_(
-    product_id: int,
+    product: Annotated[Product, Depends(get_market_product)],
     from_: Annotated[datetime, Query(alias="from", default_factory=_10_minutess_ago)],
     to_: Annotated[datetime, Query(alias="to", default_factory=datetime.now)],
 ) -> ProductRecordsModel:
-    records = get_records(product_id, from_=from_, to_=to_)
+    records = product.get_records(from_, to_)
     if records:
         return ProductRecordsModel(
-            product_id=product_id,
+            product_id=product.get_id(),
             records=[
-                ProductRecordModel(date=date, value=value) for date, value in records
+                ProductRecordModel(date=record.date, value=record.value)
+                for record in records
             ],
-            start_date=records[0][0],
-            end_date=records[-1][0],
+            start_date=records[0].date,
+            end_date=records[-1].date,
         )
     else:
         return ProductRecordsModel(
-            product_id=product_id,
+            product_id=product.get_id(),
             records=[],
             start_date=from_,
             end_date=to_,
@@ -250,10 +254,10 @@ async def get_product_records_(
 async def get_all_products_() -> list[ProductModel]:
     return [
         ProductModel(
-            product_id=product.id,
+            product_id=product.get_id(),
             product_name=product.name,
         )
-        for product in get_products()
+        for product in market.get_all_products()
     ]
 
 
@@ -261,10 +265,10 @@ async def get_all_products_() -> list[ProductModel]:
 async def get_market_() -> list[InventoryItemModel]:
     return [
         InventoryItemModel(
-            product_id=id,
-            quantity=quantity,
+            product_id=entry.product.get_id(),
+            quantity=entry.amount,
         )
-        for id, quantity in get_market()
+        for entry in market.get_inventory()
     ]
 
 
@@ -278,10 +282,10 @@ async def get_market_() -> list[InventoryItemModel]:
 )
 async def buy_product_(
     user: Annotated[User, Depends(get_current_user)],
-    product: Annotated[ProductModel, Depends(get_product_entry)],
+    product: Annotated[Product, Depends(get_market_product)],
     payload: AmountPayload,
 ) -> None:
-    user.buy_product(product.product_id, payload.amount)
+    user.buy_product(product, payload.amount)
 
 
 @app.put(
@@ -294,13 +298,16 @@ async def buy_product_(
 )
 async def sell_product_(
     user: Annotated[User, Depends(get_current_user)],
-    product: Annotated[ProductModel, Depends(get_product_entry)],
+    product: Annotated[Product, Depends(get_market_product)],
     payload: AmountPayload,
 ) -> None:
-    user.sell_product(product.product_id, payload.amount)
+    user.sell_product(product, payload.amount)
 
 
 if __name__ == "__main__":
     import uvicorn
+    from pathlib import Path
 
-    uvicorn.run(app, port=8080)
+    log_config_path = Path("trading_server/log_conf.yaml").resolve()
+
+    uvicorn.run(app, port=8080, log_config=str(log_config_path))
