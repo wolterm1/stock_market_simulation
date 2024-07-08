@@ -27,10 +27,8 @@ class TradingApp(App):
 
     api = APIClient("http://localhost:8080")
 
-    @work
     async def on_mount(self):
-        # await self.push_screen_wait(LoginScreen())
-        self.push_screen(TradingScreen())
+        self.push_screen(LoginScreen())
 
     async def on_unmount(self) -> None:
         await self.api.client.aclose()

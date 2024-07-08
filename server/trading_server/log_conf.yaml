@@ -1,23 +1,26 @@
 version: 1
 disable_existing_loggers: False
 formatters:
+  console:
+    (): colorlog.ColoredFormatter
+    format: '[%(asctime)s] [%(name)s] %(log_color)s[%(levelname)s] - %(message)s'
+    log_colors:
+      DEBUG:    'cyan'
+      INFO:     'green'
+      WARNING:  'yellow'
+      ERROR:    'red'
+      CRITICAL: 'red,bg_white'
   default:
     format: '[%(asctime)s] [%(name)s] [%(levelname)s] - %(message)s'
-  access:
-    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 handlers:
   default:
-    formatter: default
-    class: logging.StreamHandler
-    stream: ext://sys.stderr
-  access:
-    formatter: access
+    formatter: console
     class: logging.StreamHandler
     stream: ext://sys.stdout
   file:
     class: logging.handlers.RotatingFileHandler
     formatter: default
-    filename: ../.log
+    filename: ../server.log
     maxBytes: 10485760
     backupCount: 3
     encoding: utf8
@@ -31,11 +34,12 @@ loggers:
   uvicorn.access:
     level: INFO
     handlers:
-      - access
+      - default
       - file
     propagate: no
 root:
   level: DEBUG
   handlers:
     - default
+    - file
   propagate: no

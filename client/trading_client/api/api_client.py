@@ -1,5 +1,7 @@
 from datetime import datetime
 from functools import wraps
+from re import T
+import traceback
 import httpx
 
 import asyncio
@@ -52,10 +54,11 @@ def retry_on_exception(
                 try:
                     return await func(*args, **kwargs)
                 except tuple(exceptions) as e:
-                    logging.error(f"Caught exception {e}. Retrying...")
+                    log.error(traceback.format_exc())
+                    log.error(f"Caught exception {str(e)}. Retrying...")
                     retries += 1
                     if retries == max_retries:
-                        raise e
+                        raise
 
         return wrapper
 
@@ -91,7 +94,6 @@ class NoAuth(httpx.Auth):
 
 CATCH = [
     httpx.RemoteProtocolError,
-    httpx.ReadError,
     httpx.ConnectError,
     httpx.NetworkError,
     httpx.ProtocolError,
@@ -100,11 +102,19 @@ CATCH = [
 MAX_RETRIES = 5
 
 
+class Cache(TypedDict):
+    products: dict[int, Product]
+
+
 class APIClient:
     """ """
 
     def __init__(self, base_url="http://localhost:8000") -> None:
         self.client = httpx.AsyncClient(base_url=base_url)  # Use AsyncClient
+
+        self.cache: Cache = {
+            "products": {},
+        }
 
     async def login(self, username: str, password: str):
         response = await self.client.post(
@@ -161,6 +171,10 @@ class APIClient:
 
     @retry_on_exception(CATCH, MAX_RETRIES)
     async def get_product(self, product_id: int) -> Product:
+        if product_id in self.cache["products"]:
+            return self.cache["products"][product_id]
+
+        log.info("sending request for {}".format(product_id))
         response = await self.client.get(f"/product/{product_id}")
 
         if response.status_code == 404:
@@ -168,7 +182,9 @@ class APIClient:
         response.raise_for_status()
 
         data: ProductResponse = response.json()
-        return Product(**data)
+        product = Product(**data)
+        self.cache["products"][product_id] = product
+        return product
 
     @retry_on_exception(CATCH, MAX_RETRIES)
     async def get_records(

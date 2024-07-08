@@ -8,12 +8,13 @@ from textual.containers import (
 from textual.reactive import reactive
 from textual.screen import Screen
 from textual.widgets import Button, Input, Label
+from trading_client.screens.trading import TradingScreen
 from trading_client.api.exceptions import IncorrectCredentials, UserAlreadyExists
 
 from trading_client.utils import AppType, catch_and_notify
 
 
-class LoginScreen(AppType, Screen):
+class LoginScreen(AppType, Screen[bool]):
     """ """
 
     username = ""
@@ -47,10 +48,10 @@ class LoginScreen(AppType, Screen):
     @catch_and_notify([ConnectError, IncorrectCredentials])
     async def login(self, event: Button.Pressed):
         await self.app.api.login(self.username, self.password)
-        self.dismiss()
+        self.app.push_screen(TradingScreen())
 
     @on(Button.Pressed, "#register-button")
     @catch_and_notify([ConnectError, UserAlreadyExists])
     async def register(self, event: Button.Pressed):
         await self.app.api.register(self.username, self.password)
-        self.dismiss()
+        self.app.push_screen(TradingScreen())
