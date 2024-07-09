@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # Name des Projekts
-project(PrjectStockMarket)
+project(ProjectStockMarket)
 
 # ----------------------------------------------#
 # -------------------Optionen-------------------#
@@ -79,7 +79,7 @@ add_executable(authmain
 # ----------------------------------------------#
 add_subdirectory(external/pybind11)
 
-option(SQLITECPP_INSTALL "Enable installation of SQLiteCpp." OFF)
+option(SQLITECPP_INSTALL "Enable installation of SQLiteCpp." ON)
 
 if(NOT SQLITECPP_INSTALL)
   set(CMAKE_SKIP_INSTALL_ALL ON)
@@ -99,8 +99,10 @@ pybind11_add_module(auth
   ${SRC_FILES}
 )
 
+
 install(TARGETS market_logic
   COMPONENT python
+
   DESTINATION "../../server/trading_server/modules"
 )
 install(TARGETS auth
@@ -112,6 +114,8 @@ install(TARGETS auth
 include_directories(${PROJECT_SOURCE_DIR}/external/SQLiteCpp/include)
 
 # Link libraries
+target_link_libraries(auth PRIVATE SQLiteCpp)
+target_link_libraries(market_logic PRIVATE SQLiteCpp)
 target_link_libraries(testDB SQLiteCpp)
 target_link_libraries(authmain SQLiteCpp)
 
