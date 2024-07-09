@@ -85,7 +85,6 @@ pybind11_add_module(market_logic
   ${SRC_FILES}
 )
 
-
 pybind11_add_module(auth
   pybindings/pybind_auth.cpp
   ${SRC_FILES}
@@ -93,12 +92,13 @@ pybind11_add_module(auth
 
 install(TARGETS market_logic
   COMPONENT python
-  DESTINATION "{PROJECT_SOURCE_DIR}/server"
+  DESTINATION "{PROJECT_SOURCE_DIR}/server/trading_server/modules"
 )
 install(TARGETS auth
   COMPONENT python
-  DESTINATION "{PROJECT_SOURCE_DIR}/server"
+  DESTINATION "{PROJECT_SOURCE_DIR}/server/trading_server/modules"
 )
+
 # Include directories
 include_directories(${PROJECT_SOURCE_DIR}/external/SQLiteCpp/include)
 
