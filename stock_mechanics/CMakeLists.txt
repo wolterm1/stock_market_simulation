@@ -78,6 +78,15 @@ add_executable(authmain
 # -------------------Pybind---------------------#
 # ----------------------------------------------#
 add_subdirectory(external/pybind11)
+
+option(SQLITECPP_INSTALL "Enable installation of SQLiteCpp." OFF)
+
+if(NOT SQLITECPP_INSTALL)
+  set(CMAKE_SKIP_INSTALL_ALL ON)
+endif()
+
+set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/build/")
+
 add_subdirectory(external/SQLiteCpp)
 
 pybind11_add_module(market_logic
@@ -92,11 +101,11 @@ pybind11_add_module(auth
 
 install(TARGETS market_logic
   COMPONENT python
-  DESTINATION "{PROJECT_SOURCE_DIR}/server/trading_server/modules"
+  DESTINATION "../../server/trading_server/modules"
 )
 install(TARGETS auth
   COMPONENT python
-  DESTINATION "{PROJECT_SOURCE_DIR}/server/trading_server/modules"
+  DESTINATION "../../server/trading_server/modules"
 )
 
 # Include directories
