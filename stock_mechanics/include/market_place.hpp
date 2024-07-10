@@ -10,7 +10,7 @@ namespace ProjectStockMarket {
 
 class MarketPlace {
  public:
-  MarketPlace(int limit_record_entries);
+  MarketPlace(int limit_record_entries, bool try_generate_products);
   ~MarketPlace();
   std::vector<ProductEntry> getInventory();
   std::vector<Product> getAllProducts();

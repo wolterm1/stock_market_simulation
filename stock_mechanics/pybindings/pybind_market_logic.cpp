@@ -32,7 +32,7 @@ PYBIND11_MODULE(market_logic, m) {
   py::class_<sm::ProductEntry>(m, "ProductEntry")
       .def(py::init<sm::Product, int>())
       .def_readwrite("product", &sm::ProductEntry::product)
-      .def_readwrite("asm::mount", &sm::ProductEntry::count);
+      .def_readwrite("amount", &sm::ProductEntry::count);
 
   py::class_<sm::User>(m, "User")
       .def(py::init<int, std::string, int>())
@@ -44,7 +44,7 @@ PYBIND11_MODULE(market_logic, m) {
       .def("sell_product", &sm::User::sellProduct);
 
   py::class_<sm::MarketPlace>(m, "MarketPlace")
-      .def(py::init<int>())
+      .def(py::init<int, bool>())
       .def("get_inventory", &sm::MarketPlace::getInventory)
       .def("get_all_products", &sm::MarketPlace::getAllProducts);
 

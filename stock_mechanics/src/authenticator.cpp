@@ -25,6 +25,7 @@ std::string generateRandomToken(size_t p_size) {
 // speichern den
 std::string Authenticator::login(const Account& account) {
   int account_id = DBConnector::verifyCredentials(account);
+  std::cout << "Account ID: " << account_id << std::endl;
   std::string token = generateRandomToken(16);
   DBConnector::addToken(account_id, token);
   return token;

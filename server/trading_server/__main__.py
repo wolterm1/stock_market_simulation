@@ -33,10 +33,7 @@ try:
         InvalidToken,
         IncorrectPassword,
         Account,
-        authenticate_user,
-        find_user_by_token,
-        logout,
-        register,
+        Authenticator,
     )
     from trading_server.modules.market_logic import (  # type: ignore
         NotEnoughMoney,
@@ -58,8 +55,10 @@ except ImportError as e:
 
 logger = getLogger("uvicorn")
 
-init_database("./stockmarket.db")
-market = MarketPlace(60 * 60)
+# init_database("./stockmarket.db")
+# market = MarketPlace(60 * 60, False)
+init_database(":memory:")
+market = MarketPlace(60 * 60, True)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -73,7 +72,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> Use
     Returns:
         User: User object representing the current user
     """
-    user = find_user_by_token(token)
+    user = Authenticator.find_user_by_token(token)
     return user
 
 
@@ -156,7 +155,8 @@ async def index_() -> dict[str, str]:
 )
 async def login_(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:
     account = Account(form_data.username, form_data.password)
-    token = authenticate_user(account)
+    logger.info((account.username, account.password))
+    token = Authenticator.authenticate_user(account)
 
     return Token(access_token=token)
 
@@ -172,9 +172,9 @@ async def register_(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ) -> Token:
     account = Account(form_data.username, form_data.password)
-    register(account, form_data.username)
-    token = authenticate_user(account)
-    return Token(access_token=token)
+    Authenticator.register(account, form_data.username)
+    # token = Authenticator.authenticate_user(account)
+    return Token(access_token="test")
 
 
 @app.put(
@@ -185,7 +185,7 @@ async def register_(
     """,
 )
 async def logout_(token: Annotated[str, Depends(oauth2_scheme)]) -> None:
-    logout(token)
+    Authenticator.logout(token)
 
 
 @app.get(
@@ -239,25 +239,31 @@ async def get_product_records_(
     # Convert the datetime objects to naive UTC datetime objects for the database
     # this should work if datetimes provided are aware
     # if not maybe too?
-
     logger.info(from_)
     logger.info(to_)
-    naive_from = from_.astimezone(timezone.utc)
-    naive_to = to_.astimezone(timezone.utc)
 
-    logger.info(naive_from)
-    logger.info(naive_to)
+    records = product.get_records(from_, to_)
 
-    records = product.get_records(naive_from, naive_to)
+    # AUS IRGENDEINEN GRUND MÜSSEN WIR HIER 1 STUNDE HINZUADDIEREN
+    # ZEITZONEN SIND EIN MIST
+    # Was passiert: Zeit wird hier als naive/aware objekt übergeben
+    # pybind strippt die timezone information und speichert es als naive
+    # c++ system_clock zieht aus irgendeinen grund 2 stunden ab und macht utc draus?
+    # so wirds auch in der Datenbank gespeichert
+    # wenn wir es aber wieder auslesen, kommt bei der konvertierung von c++ zu python
+    # eine stunde hinzu. Also fügen wir eine Stunde hinzu und tun so, als ob es keine
+    # Zeitzone gäbe, da Server und Client in der selben Zeitzone laufen werden.
     if records:
         return ProductRecordsModel(
             product_id=product.id,
             records=[
-                ProductRecordModel(date=record.date, value=record.value)
+                ProductRecordModel(
+                    date=record.date + timedelta(hours=1), value=record.value
+                )
                 for record in records
             ],
-            start_date=records[0].date,
-            end_date=records[-1].date,
+            start_date=records[0].date + timedelta(hours=1),
+            end_date=records[-1].date + timedelta(hours=1),
         )
     else:
         return ProductRecordsModel(

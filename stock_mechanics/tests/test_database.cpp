@@ -12,7 +12,7 @@ namespace sm = ProjectStockMarket;
 TEST(TestDatabase, ProductsAuthBuySell) {
   sm::DBConnector::initDB(":memory:");
 
-  sm::MarketPlace mp(3600);
+  sm::MarketPlace mp(3600, false);
 
   auto apple = mp.addProduct("Apple", 100);
   auto banana = mp.addProduct("Banana", 200);
@@ -133,7 +133,8 @@ TEST(TestDatabase, ProductsAuthBuySell) {
 TEST(TestDatabase, Records) {
   sm::DBConnector::initDB(":memory:");
 
-  sm::MarketPlace mp(3600);
+  sm::MarketPlace mp(3600, false);
+
   auto apple = mp.addProduct("Apple", 100);
   sm::time_point now = std::chrono::system_clock::now();
   auto record1 = sm::Record(now, 5000);
