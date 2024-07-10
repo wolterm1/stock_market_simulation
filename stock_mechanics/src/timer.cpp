@@ -2,11 +2,9 @@
 
 namespace ProjectStockMarket {
 
-Timer::Timer() : running(false), currentTime(0) {}
+Timer::Timer() : running(false) {}
 
-Timer::~Timer() {
-  stop();
-}
+Timer::~Timer() { stop(); }
 
 void Timer::start() {
   running = true;
@@ -20,10 +18,6 @@ void Timer::stop() {
   }
 }
 
-int Timer::getCurrentTime() const {
-  return currentTime.load();
-}
-
 void Timer::setCallback(std::function<void()> callback) {
   this->callback = callback;
 }
@@ -31,8 +25,6 @@ void Timer::setCallback(std::function<void()> callback) {
 void Timer::run() {
   while (running) {
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    ++currentTime;
-
     if (callback) {
       callback();
     }

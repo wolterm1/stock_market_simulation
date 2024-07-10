@@ -4,62 +4,35 @@
 
 using namespace ProjectStockMarket;
 
-User::User() {}
-User::User(Account a, std::string name, int b) : m_account(a), m_name(name), m_balance(b) {}
-User::User(Account a, std::string name, int b, std::vector<ProductEntry> inv)
-    : m_account(a), m_name(name), m_balance(b), m_inventory(inv) {}
-
-void User::buyProduct(ProductEntry p_entry) {
-  int product_total_price = DBConnector::getLatestRecordPrice(p_entry.product) * p_entry.count;
+void User::buyProduct(const Product& p_product, int p_amount) {
+  int current_price = p_product.getCurrentPrice();
+  int product_total_price = current_price * p_amount;
   if (m_balance < product_total_price)
     throw std::runtime_error("not enough balance to buy these product amount");
-  m_balance = getBalance();
+  DBConnector::updateMarketProductEntry(p_product, -p_amount);
+  DBConnector::updateUserProductEntry(*this, p_product, p_amount);
   m_balance -= product_total_price;
-  DBConnector::removeProductEntryFromMarket(p_entry);
-  DBConnector::addProductEntryToInventory(p_entry, *this);
-  DBConnector::updateUser(*this, getName(), m_balance);
-}
-void User::sellProduct(ProductEntry p_entry) {
-  int product_total_price_earned =
-      DBConnector::getLatestRecordPrice(p_entry.product) * p_entry.count;
-  m_balance = getBalance();
-  m_balance += product_total_price_earned;
-  DBConnector::removeProductEntryFromInventory(p_entry, *this);
-  DBConnector::addProductEntryToMarket(p_entry);
-  DBConnector::updateUser(*this, getName(), m_balance);
+  DBConnector::updateUser(*this);
 }
 
-Account User::getAccount() {
-  return m_account;
+void User::sellProduct(const Product& p_product, int p_amount) {
+  int current_price = p_product.getCurrentPrice();
+  int product_total_price = current_price * p_amount;
+  DBConnector::updateUserProductEntry(*this, p_product, -p_amount);
+  DBConnector::updateMarketProductEntry(p_product, p_amount);
+  m_balance += product_total_price;
+  DBConnector::updateUser(*this);
 }
 
-void User::increaseBalance(int amount) {
-  int newBalance = getBalance() + amount;
-  DBConnector::updateUser(*this, getName(), newBalance);
-  m_balance = getBalance();
-}
+int User::getId() const { return m_id; }
 
-int User::getId() {
-  return DBConnector::getUserId(*this);
-}
-std::string User::getName() {
-  try {
-    m_name = DBConnector::getUserName(m_account);
-  } catch (const std::exception& e) {
-  }
+std::string User::getName() const { return m_name; }
 
-  return m_name;
-}
-int User::getBalance() {
-  try {
-    m_balance = DBConnector::getUserBalance(m_account);
-  } catch (const std::exception& e) {
-  }
-  return m_balance;
-}
+int User::getBalance() const { return m_balance; }
+
 std::vector<ProductEntry> User::getInventory() {
   try {
-    return DBConnector::getAllProductEntriesFromInventory(*this);
+    return DBConnector::getUserInventory(*this);
   } catch (const std::exception& e) {
     return {};
   }

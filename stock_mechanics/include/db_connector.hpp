@@ -1,102 +1,61 @@
 #pragma once
+
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/VariadicBind.h>
 
 #include <ctime>
 #include <functional>
+#include <memory>
 #include <string>
 
 #include "account.hpp"
 #include "product.hpp"
 #include "product_entry.hpp"
+#include "record.hpp"
 #include "user.hpp"
 
 namespace ProjectStockMarket {
 
 /**
  * @class DBConnector
- * @brief Handles all database operations for the ProjectStockMarket application.
+ * @brief Handles all database operations for the ProjectStockMarket
+ * application.
  */
 class DBConnector {
  public:
+  static void initDB(std::string path);
   /**
-   * @brief Constructs a new DBConnector object.
-   */
-  DBConnector();
-
-  /**
-   * @brief Default destructor, SQLiteCpp manages the database connection automatically.
+   * @brief Default destructor, SQLiteCpp manages the database connection
+   * automatically.
    */
   ~DBConnector() = default;
 
   /**
-   * @brief Adds a new user to the database.
-   * If the account is already existing, it throws an error.
-   *
-   * @param user The user to be added.
+   * @brief Registers a new user in the database. Also creates the user row with
+   * initial balance.
    */
-  static void addUser(User user);
+  static void registerAccount(const Account& account,
+                              const std::string& display_name);
+
+  /**
+   * @brief Gets a user from the database.
+   * Throws error if the user was not found.
+   *
+   * @param p_user_id The user_id to get.
+   */
+  static User getUser(int p_user_id);
 
   /**
    * @brief Updates an existing user in the database.
    * If the User isn't registered it throws an error.
    *
    */
-  static void updateUser(User p_user, std::string p_name, int p_balance);
+  static void updateUser(const User& p_user);
 
   /**
-   * @brief Finds a user by their account information.
-   * Throws error if the user was not found.
-   *
-   * @param account The account information to find the user by.
-   * @return The user found.
+   * @brief Adds a new Product to the database.
    */
-  static User findUser(Account account);
-
-  /**
-   * @brief Gets the user balance from the database.
-   * Throws error if the user was not found.
-   *
-   * @param account The account information to find the user by.
-   * @return The user's balance.
-   */
-  static int getUserBalance(Account account);
-
-  /**
-   * @brief Gets the user's name from the database.
-   * Throws error if the user was not found.
-   *
-   * @param account The account information to find the user by.
-   * @return The user's name.
-   */
-  static std::string getUserName(Account account);
-
-  /**
-   * @brief Gets the product ID from the database.
-   * Throws error if not found.
-   *
-   * @param product The product to get the ID for.
-   * @return The product ID.
-   */
-  static int getProductId(Product product);
-
-  /**
-   * @brief Gets the product price from the database.
-   * Throws error if not found.
-   *
-   * @param product The product to get the price for.
-   * @return The product price.
-   */
-  static int getProductPrice(Product product);
-  static void setProductCurrentPrice(Product product, int price);
-  /**
-   * @brief Gets the user ID from the database.
-   * Throws error if not found.
-   *
-   * @param user The user to get the ID for.
-   * @return The user ID.
-   */
-  static int getUserId(User user);
+  static Product addProduct(const std::string& p_product_name, int p_count);
 
   /**
    * @brief Gets a product by its ID from the database.
@@ -108,28 +67,19 @@ class DBConnector {
   static Product getProduct(int product_id);
 
   /**
-   * @brief Adds a product entry to the market.
-   * Adds it to the product list if not already registered.
-   * Adds it to the market new or will increase the count if registered.
-   * Adds 1 Initial record with the starting price or with existing price.
+   * @brief Updates the amount of a product in the market.
    *
-   * @param entry The product entry to add.
+   * @param p_product The product to update
+   * @param p_change The amount to change the product by.
    */
-  static void addProductEntryToMarket(ProductEntry entry);
-
-  /**
-   * @brief Removes a product entry from the market.
-   *
-   * @param entry The product entry to remove.
-   */
-  static void removeProductEntryFromMarket(ProductEntry entry);
+  static void updateMarketProductEntry(const Product& p_product, int p_change);
 
   /**
    * @brief Gets all product entries from the market.
    *
    * @return A vector of all product entries in the market.
    */
-  static std::vector<ProductEntry> getAllProductEntriesFromMarket();
+  static std::vector<ProductEntry> getMarketInventory();
 
   /**
    * @brief Gets all products from the database.
@@ -137,21 +87,16 @@ class DBConnector {
    * @return A vector of all products.
    */
   static std::vector<Product> getAllProducts();
-  /**
-   * @brief Adds a product entry to a user's inventory.
-   *
-   * @param entry The product entry to add.
-   * @param user The user to add the product entry to.
-   */
-  static void addProductEntryToInventory(ProductEntry entry, User user);
 
   /**
-   * @brief Removes a product entry from a user's inventory.
+   * @brief Updates the amount of a product in a user's inventory.
    *
-   * @param entry The product entry to remove.
-   * @param user The user to remove the product entry from.
+   * @param p_user The user to update the product for.
+   * @param p_product The product to update.
+   * @param p_amount The amount to change the product by.
    */
-  static void removeProductEntryFromInventory(ProductEntry entry, User user);
+  static void updateUserProductEntry(const User& p_user,
+                                     const Product& p_product, int p_amount);
 
   /**
    * @brief Gets all product entries from a user's inventory.
@@ -159,7 +104,7 @@ class DBConnector {
    * @param user The user to get the product entries for.
    * @return A vector of all product entries in the user's inventory.
    */
-  static std::vector<ProductEntry> getAllProductEntriesFromInventory(User user);
+  static std::vector<ProductEntry> getUserInventory(User user);
 
   /**
    * @brief Adds a record for a product.
@@ -167,15 +112,15 @@ class DBConnector {
    * @param product The product to add the record for.
    * @param record The record to add.
    */
-  static void addRecord(Product product, Record record);
+  static void addRecord(const Product& p_product, const Record& p_record);
 
   /**
    * @brief Keeps the latest X records for a product.
    *
-   * @param amount The number of latest records to keep.
    * @param product The product to keep the records for.
+   * @param amount The number of latest records to keep.
    */
-  static void keepLatestXRecords(Product product, int amount);
+  static void pruneRecords(Product product, int amount);
 
   /**
    * @brief Gets the records for a product from oldest to newest.
@@ -183,31 +128,49 @@ class DBConnector {
    * @param product The product to get the records for.
    * @return A vector of records from oldest to newest.
    */
-  static std::vector<Record> getRecordsFromOldestToNewest(Product product);
+  static std::vector<Record> getAllRecords(const Product& product);
+
+  /**
+   * @brief Gets all records for a product in the given time range.
+   *
+   * @param product THe product to get the records for.
+   * @param from The start of the time range.
+   * @param to The end of the time range.
+   * @return A vector of records in the given time range.
+   */
+  static std::vector<Record> getRecords(const Product& product,
+                                        const time_point& from,
+                                        const time_point& to);
 
   /**
    * @brief Gets the latest record price for a product.
    *
    * @param product The product to get the latest record price for.
-   * @return The latest record price.
+   * @return The latest record price, aka the current price.
    */
-  static int getLatestRecordPrice(Product product);
+  static int getLatestRecordPrice(const Product& product);
 
   /**
-   * @brief adds a temporary token for a account in Account-db
-   * @param Account with username and password
-   * @param token string to insert
+   * @brief Checks if the given credentials are valid. Returns the account id if
+   * they are. Raises an exception if they are not.
+   * @param account The account to verify.
+   * @return The account id if the credentials are valid.
+   * @throw std::runtime_error if the credentials are invalid.
    */
-  static void addAccountToken(Account a, std::string token);
+  static int verifyCredentials(const Account& account);
 
-  /// @brief sets token entry in Account for given token to NULL
-  /// @param token string to remove
-  static void removeTokenFromAccountDB(std::string token);
+  /**
+   * @brief Adds a token to the database for a user.
+   */
+  static std::string addToken(int user_id, const std::string& token);
 
-  /// @brief returns the User whose account is assoiated with token
-  /// @param token string
-  /// @return the User whith account that contains token
-  static User getUser(std::string token);
+  /**
+   * @brief Logs out a user by removing the token from the database.
+   * @param p_token The token to remove.
+   */
+  static void removeToken(const std::string& p_token);
+
+  static User getUserByToken(const std::string& p_token);
 
  private:
   /**
@@ -220,10 +183,9 @@ class DBConnector {
    *
    * @return The initialized DBConnector.
    */
-  static DBConnector initialize();
 
-  static DBConnector init;             ///< Static instance for initialization.
-  static SQLite::Database m_database;  ///< The database connection.
+  static std::unique_ptr<SQLite::Database>
+      m_database;  ///< The database connection.
 };
 
 }  // namespace ProjectStockMarket

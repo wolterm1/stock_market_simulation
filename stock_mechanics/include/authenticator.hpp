@@ -10,28 +10,23 @@ namespace ProjectStockMarket {
 
 struct Authenticator {
   /**
-   * @brief checks if Account is in db
-   * @return a string token
+   * @brief Generates a login token used for authentication
+   * @returns the generated token
    */
-  std::string login(Account a);
-  /**
-   * @brief adds Accout and new User to db and logs them in
-   * @return a string token
-   */
-  std::string registerAcc(std::string displayName, Account a);
+  static std::string login(const Account& account);
+  static std::string registerAccount(const Account& account,
+                                     const std::string& display_name);
   /**
    * @brief removes token from db
    * @return nothing
    */
-  void logout(std::string token);
+  static void logout(std::string token);
+
   /**
    * @brief finds the User in db by token
    * @return  returns the User
    */
-  User getUserByToken(std::string token);
-
-  // remove these
-  std::string generateRandomToken(size_t length);
+  static User findUserByToken(std::string p_token);
 };
 
 }  // namespace ProjectStockMarket

@@ -11,47 +11,43 @@
 #include "user.hpp"
 
 namespace py = pybind11;
-using namespace ProjectStockMarket;
+namespace sm = ProjectStockMarket;
 
 PYBIND11_MODULE(market_logic, m) {
   m.doc() = "market_logic";
-  py::class_<Record>(m, "Record")
-      .def(py::init<int, int>())
+  py::class_<sm::Record>(m, "Record")
+      .def(py::init<sm::time_point, int>())
+      .def_readwrite("datetime", &sm::Record::dateTime)
+      .def_readwrite("value", &sm::Record::price);
+
+  py::class_<sm::Product>(m, "Product")
+      .def(py::init<int, std::string>())
+      .def_property_readonly("name", &sm::Product::getName)
+      .def_property_readonly("id", &sm::Product::getId)
+      .def("get_all_records", &sm::Product::getAllRecords)
+      .def("get_records", &sm::Product::getRecords);
+
+  py::class_<sm::ProductEntry>(m, "ProductEntry")
+      .def(py::init<sm::Product, int>())
+      .def_readwrite("product", &sm::ProductEntry::product)
+      .def_readwrite("asm::mount", &sm::ProductEntry::count);
+
+  py::class_<sm::User>(m, "User")
+      .def(py::init<int, std::string, int>())
+      .def_property_readonly("id", &sm::User::getId)
+      .def_property_readonly("name", &sm::User::getName)
+      .def_property_readonly("balance", &sm::User::getBalance)
+      .def("get_inventory", &sm::User::getInventory)
+      .def("buy_product", &sm::User::buyProduct)
+      .def("sell_product", &sm::User::sellProduct);
+
+  py::class_<sm::MarketPlace>(m, "MarketPlace")
       .def(py::init<int>())
-      .def(py::init<>())
-      .def_readwrite("datetime", &Record::dateTime)
-      .def_readwrite("value", &Record::price);
-
-  py::class_<Product>(m, "Product")
-      .def(py::init<std::string, int>())
-      .def(py::init<std::string>())
-      .def(py::init<>())
-      .def_property_readonly("name", &Product::getName)
-      .def("get_id", &Product::getId)
-      .def("get_records", &Product::getAllRecords);
-
-  py::class_<ProductEntry>(m, "ProductEntry")
-      .def(py::init<Product, int>())
-      .def_readwrite("product", &ProductEntry::product)
-      .def_readwrite("amount", &ProductEntry::count);
-
-  py::class_<User>(m, "User")
-      .def(py::init<Account, std::string, int>())
-      .def(py::init<>())
-      .def("get_id", &User::getId)
-      .def("get_name", &User::getName)
-      .def("buy_product", &User::buyProduct)
-      .def("sell_product", &User::sellProduct)
-      .def("get_balance", &User::getBalance)
-      .def("get_inventory", &User::getInventory);
-
-  py::class_<MarketPlace>(m, "MarketPlace")
-      .def(py::init<int>())
-      .def("get_inventory", &MarketPlace::getInventory)
-      .def("get_all_products", &MarketPlace::getAllProduct);
+      .def("get_inventory", &sm::MarketPlace::getInventory)
+      .def("get_all_products", &sm::MarketPlace::getAllProducts);
 
   // hier kein "&" vor DBConnector weil statische Funktionen ka, ob das klappt .
   // wenn irgendwas bricht dann wahrscheinlich hier
-  m.def("get_product", DBConnector::getProduct);
-  m.def("get_user", DBConnector::getUser);
+  m.def("get_product", sm::DBConnector::getProduct);
+  m.def("get_user", sm::DBConnector::getUser);
 }

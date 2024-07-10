@@ -18,15 +18,11 @@ class Timer {
   // Stops the timer
   void stop();
 
-  // Returns the current time in seconds
-  int getCurrentTime() const;
-
   // Sets the callback function to be called every second
   void setCallback(std::function<void()> callback);
 
  private:
   std::atomic<bool> running;
-  std::atomic<int> currentTime;
   std::thread timerThread;
   std::function<void()> callback;
 

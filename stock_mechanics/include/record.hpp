@@ -1,15 +1,22 @@
 #pragma once
+
+#include <chrono>
 #include <string>
 
 namespace ProjectStockMarket {
 
+using time_point = std::chrono::system_clock::time_point;
+
 struct Record {
-  int dateTime;
+  time_point dateTime;
   int price;
 
-  Record(int dt, int pr) : dateTime(dt), price(pr) {}
-  Record(int pr) : dateTime(0), price(pr) {}
-  Record() : dateTime(0), price(0) {}  // Default constructor with current time
+  Record(time_point p_dateTime, int p_price)
+      : dateTime(p_dateTime), price(p_price) {}
+
+  bool operator==(const Record& other) const {
+    return dateTime == other.dateTime && price == other.price;
+  }
 };
 
 }  // namespace ProjectStockMarket

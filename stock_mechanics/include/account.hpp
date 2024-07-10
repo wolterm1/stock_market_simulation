@@ -9,8 +9,6 @@ struct Account {
   std::string password;
 
   Account(std::string u, std::string p) : username(u), password(p) {}
-  Account(const Account& a) : username(a.username), password(a.password) {}
-  Account() {}
 };
 
 }  // namespace ProjectStockMarket

@@ -15,6 +15,8 @@ project(ProjectStockMarket)
 # Setzte verwendeten C++-Standard auf C++17
 set(CMAKE_CXX_STANDARD 17)
 
+# 20 wäre schöner, sorgt aber für Probleme mit SQLiteCpp, somehow
+
 # Optional: Baue mit Debugsymbolen / Optimierung
 set(CMAKE_BUILD_TYPE Debug)
 
@@ -38,7 +40,7 @@ endif()
 # Download GoogleTest (we use version 1.12.1)
 FetchContent_Declare(
   googletest
-  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+  URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
 )
 
 # Workaround for Windows:
@@ -55,39 +57,33 @@ include(GoogleTest)
 # Enable GoogleTest
 enable_testing()
 
+add_subdirectory(external/SQLiteCpp)
+add_subdirectory(external/pybind11)
+
 # Legt die Variable SRC_FILES an, die alle
 # .cpp-Dateien des Projekts benennt,
 # die in Verzeichnis src/ liegen.
 file(GLOB SRC_FILES
   ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
-# Baue das Programm 'demo1' aus den Quellen
-# examples/demo1.cpp und allen Quelldateien in
-# SRC_FILES (also alle im Verzeichnis src/)
-add_executable(testDB
-  examples/test_database.cpp
-  ${SRC_FILES}
-)
-
-add_executable(authmain
-  examples/authmain.cpp
+# add_executable(authmain
+# examples/authmain.cpp
+# ${SRC_FILES}
+# )
+add_executable(main
+  examples/main.cpp
   ${SRC_FILES}
 )
 
 # ----------------------------------------------#
 # -------------------Pybind---------------------#
 # ----------------------------------------------#
-add_subdirectory(external/pybind11)
 
-option(SQLITECPP_INSTALL "Enable installation of SQLiteCpp." ON)
+# Für Projekte, die global gebaut werden wollen, forcen wir den Pfad
+# set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/build/")
 
-if(NOT SQLITECPP_INSTALL)
-  set(CMAKE_SKIP_INSTALL_ALL ON)
-endif()
-
-set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/build/")
-
-add_subdirectory(external/SQLiteCpp)
+# Blöde unnötige Fehler ignorieren
+set(SQLITECPP_RUN_CPPLINT OFF)
 
 pybind11_add_module(market_logic
   pybindings/pybind_market_logic.cpp
@@ -99,28 +95,32 @@ pybind11_add_module(auth
   ${SRC_FILES}
 )
 
-
 install(TARGETS market_logic
   COMPONENT python
-
-  DESTINATION "../../server/trading_server/modules"
+  DESTINATION "."
 )
+
 install(TARGETS auth
   COMPONENT python
-  DESTINATION "../../server/trading_server/modules"
+  DESTINATION "."
 )
-
-# Include directories
-include_directories(${PROJECT_SOURCE_DIR}/external/SQLiteCpp/include)
 
 # Link libraries
 target_link_libraries(auth PRIVATE SQLiteCpp)
 target_link_libraries(market_logic PRIVATE SQLiteCpp)
-target_link_libraries(testDB SQLiteCpp)
-target_link_libraries(authmain SQLiteCpp)
+target_link_libraries(main
+  SQLiteCpp
+  sqlite3
+  pthread
+  dl
+)
 
-# Baue pybind11-Schnittstelle
+# target_link_libraries(testDB SQLiteCpp)
+# target_link_libraries(authmain SQLiteCpp)
 
 # ----------------------------------------------#
 # ---------m----Erzeuge Testprogramme------------#
 # ----------------------------------------------#
+add_executable(testDatabase tests/test_database.cpp ${SRC_FILES})
+target_link_libraries(testDatabase PRIVATE SQLiteCpp GTest::gtest_main)
+gtest_discover_tests(testDatabase)

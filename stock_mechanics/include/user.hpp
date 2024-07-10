@@ -7,24 +7,20 @@ namespace ProjectStockMarket {
 
 class User {
  public:
-  User();
-  User(Account a, std::string name, int b);
-  User(Account a, std::string name, int b, std::vector<ProductEntry> inv);
+  User(int id, std::string name, int balance)
+      : m_id(id), m_name(name), m_balance(balance) {}
 
-  void buyProduct(ProductEntry p_entry);
-  void sellProduct(ProductEntry p_entry);
-  void increaseBalance(int amount);
-  int getId();
-  std::string getName();
-  int getBalance();
+  int getId() const;
+  std::string getName() const;
+  int getBalance() const;
   std::vector<ProductEntry> getInventory();
-  Account getAccount();
+  void buyProduct(const Product& p_product, int p_amount);
+  void sellProduct(const Product& p_product, int p_amount);
 
  private:
-  Account m_account;
+  int m_id;
   std::string m_name;
   int m_balance;
-  std::vector<ProductEntry> m_inventory;
 };
 
 }  // namespace ProjectStockMarket

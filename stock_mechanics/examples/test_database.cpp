@@ -33,7 +33,7 @@ void TEST_ADDING_RECORD_TO_PRODUCT() {
     ProjectStockMarket::Record ent(i, randomNumber);
     ProjectStockMarket::DBConnector::addRecord(p, ent);
   }
-  std::cout << "CURRENT BALL PRICE: " << p.getPrice() << std::endl;
+  std::cout << "CURRENT BALL PRICE: " << p.getCurrentPrice() << std::endl;
 }
 
 void TEST_READING_ALL_RECORDS() {
@@ -46,7 +46,7 @@ void TEST_READING_ALL_RECORDS() {
 void TEST_REDUCING_RECORDS() {
   std::cout << "\nTEST: TEST_REDUCING_RECORDS" << std::endl;
   ProjectStockMarket::Product p("ball");
-  ProjectStockMarket::DBConnector::keepLatestXRecords(p, 5);
+  ProjectStockMarket::DBConnector::pruneRecords(p, 5);
 }
 
 void TEST_GET_LATEST_PRICE_FROM_PRODUCT() {
@@ -70,9 +70,11 @@ void TEST_FINDING_USER_AND_UPDATING_HIM() {
 }
 
 void TEST_REMOVING_AND_GETTING_ALL_PRODUCTENTRIES_FROM_MARKET() {
-  std::cout << "\nTEST: TEST_REMOVING_AND_GETTING_ALL_PRODUCTENTRIES_FROM_MARKET" << std::endl;
+  std::cout
+      << "\nTEST: TEST_REMOVING_AND_GETTING_ALL_PRODUCTENTRIES_FROM_MARKET"
+      << std::endl;
   std::vector<ProjectStockMarket::ProductEntry> everyEntry =
-      ProjectStockMarket::DBConnector::getAllProductEntriesFromMarket();
+      ProjectStockMarket::DBConnector::getMarketInventory();
   for (auto e : everyEntry) {
     ProjectStockMarket::DBConnector::removeProductEntryFromMarket(e);
   }
@@ -93,25 +95,30 @@ void TEST_ADD_PRODUCTENTRIES_TO_INVENTORY() {
   ProjectStockMarket::ProductEntry getEntryTable(table, 10);
   ProjectStockMarket::DBConnector::removeProductEntryFromMarket(getEntryBall);
   ProjectStockMarket::DBConnector::removeProductEntryFromMarket(getEntryTable);
-  ProjectStockMarket::DBConnector::addProductEntryToInventory(getEntryBall, user);
-  ProjectStockMarket::DBConnector::addProductEntryToInventory(getEntryTable, user);
+  ProjectStockMarket::DBConnector::addProductEntryToInventory(getEntryBall,
+                                                              user);
+  ProjectStockMarket::DBConnector::addProductEntryToInventory(getEntryTable,
+                                                              user);
 }
 
 void TEST_GET_ALL_PRODUCTENTRIES_FROM_INVENTORY() {
-  std::cout << "\nTEST: TEST_GET_ALL_PRODUCTENTRIES_FROM_INVENTORY" << std::endl;
+  std::cout << "\nTEST: TEST_GET_ALL_PRODUCTENTRIES_FROM_INVENTORY"
+            << std::endl;
   ProjectStockMarket::Account a("0", "password");
   ProjectStockMarket::User user(a, "dummy_user", 100);
   std::vector<ProjectStockMarket::ProductEntry> entries =
-      ProjectStockMarket::DBConnector::getAllProductEntriesFromInventory(user);
+      ProjectStockMarket::DBConnector::getUserInventory(user);
 }
 
 void TEST_REMOVE_ALL_PRODUCTENTRIES_FROM_INVENTORY() {
-  std::cout << "\nTEST: TEST_REMOVE_ALL_PRODUCTENTRIES_FROM_INVENTORY" << std::endl;
+  std::cout << "\nTEST: TEST_REMOVE_ALL_PRODUCTENTRIES_FROM_INVENTORY"
+            << std::endl;
   ProjectStockMarket::Account a("0", "password");
   ProjectStockMarket::User user(a, "dummy_user", 100);
   std::vector<ProjectStockMarket::ProductEntry> entries =
-      ProjectStockMarket::DBConnector::getAllProductEntriesFromInventory(user);
-  for (auto e : entries) ProjectStockMarket::DBConnector::removeProductEntryFromInventory(e, user);
+      ProjectStockMarket::DBConnector::getUserInventory(user);
+  for (auto e : entries)
+    ProjectStockMarket::DBConnector::updateUserProductEntry(e, user);
 }
 
 void TEST_GETTING_ALL_PRODUCTS() {
