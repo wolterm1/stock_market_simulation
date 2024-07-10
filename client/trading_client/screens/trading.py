@@ -11,6 +11,7 @@ from tkinter import Y
 from typing import Iterable
 
 
+import httpx
 from rich.text import Text
 from rich.style import Style
 
@@ -32,7 +33,11 @@ from textual_plotext import PlotextPlot
 
 from trading_client.api.market import Supply
 from trading_client.api import Product, PriceRecord, User, Market, InventoryItem
-from trading_client.api.exceptions import IncorrectCredentials, UserAlreadyExists
+from trading_client.api.exceptions import (
+    IncorrectCredentials,
+    UserAlreadyExists,
+    TransactionFailed,
+)
 from trading_client.utils import AppType, catch_and_notify, COOL_COLORS
 
 
@@ -505,3 +510,25 @@ class TradeWidget(AppType, Static):
         )
 
         self.styles.hatch = ("left", self.color.with_alpha(0.2))
+
+    @on(Button.Pressed, "#buy-button")
+    @catch_and_notify(
+        [
+            TransactionFailed,
+            httpx.HTTPStatusError,
+        ]
+    )
+    async def buy(self, event: Button.Pressed):
+        amount = int(self.query_one("#buy-amount-input", Input).value)
+        await self.parent.app.api.buy_product(self.parent.product_id, amount)
+
+    @on(Button.Pressed, "#sell-button")
+    @catch_and_notify(
+        [
+            TransactionFailed,
+            httpx.HTTPStatusError,
+        ]
+    )
+    async def sell(self, event: Button.Pressed):
+        amount = int(self.query_one("#sell-amount-input", Input).value)
+        await self.parent.app.api.sell_product(self.parent.product_id, amount)

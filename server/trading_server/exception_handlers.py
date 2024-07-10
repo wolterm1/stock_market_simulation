@@ -1,18 +1,14 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from trading_server._so._auth import (
+from trading_server.modules.auth import (
     IncorrectPassword,
     InvalidToken,
-    UserNotFound,
 )
-from trading_server._so._market_logic import NotEnoughMoney, OutOfStock, ProductNotFound
-
-
-async def user_not_found_handler(request: Request, exc: UserNotFound):
-    return JSONResponse(
-        status_code=404,
-        content={"message": "User not found"},
-    )
+from trading_server.modules.market_logic import (
+    NotEnoughMoney,
+    OutOfStock,
+    ProductNotFound,
+)
 
 
 async def product_not_found_handler(request: Request, exc: ProductNotFound):
