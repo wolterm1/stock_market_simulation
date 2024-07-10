@@ -13,7 +13,22 @@ namespace ProjectStockMarket {
 MarketPlace::MarketPlace(int limit_record_entries)
     : m_limit_record_entries(limit_record_entries) {
   DBConnector::addPriceRecordLimitTrigger(m_limit_record_entries);
+  std::vector<Product> products = DBConnector::getAllProducts();
+  if (products.empty()) {
+    time_point now = std::chrono::system_clock::now();
+    addProduct("Apple", 100).addRecord(Record(now, 100));
+    addProduct("Banana", 100).addRecord(Record(now, 100));
+    addProduct("Orange", 100).addRecord(Record(now, 100));
+    addProduct("Pineapple", 100).addRecord(Record(now, 100));
+    addProduct("Mango", 100).addRecord(Record(now, 100));
+    addProduct("Peach", 100).addRecord(Record(now, 100));
+    addProduct("Strawberry", 100).addRecord(Record(now, 100));
+    addProduct("Blueberry", 100).addRecord(Record(now, 100));
+    addProduct("Raspberry", 100).addRecord(Record(now, 100));
+    addProduct("Blackberry", 100).addRecord(Record(now, 100));
+  }
   timer.setCallback([this]() { updateProductPrices(); });
+  timer.start();
 }
 
 MarketPlace::~MarketPlace() { timer.stop(); }

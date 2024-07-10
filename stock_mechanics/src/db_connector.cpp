@@ -18,14 +18,14 @@ std::string to_iso_string(const time_point& tp) {
   auto in_time_t = std::chrono::system_clock::to_time_t(tp);
   std::tm tm = *std::gmtime(&in_time_t);
   char buffer[30];
-  std::strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &tm);
+  std::strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S%z", &tm);
   return std::string(buffer);
 }
 
 time_point from_iso_string(const std::string& iso_string) {
   std::istringstream in{iso_string};
   std::tm tm = {};
-  in >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
+  in >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S%z");
   return std::chrono::system_clock::from_time_t(std::mktime(&tm));
 }
 

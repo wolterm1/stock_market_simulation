@@ -1,3 +1,4 @@
+#include <pybind11/chrono.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
@@ -18,7 +19,7 @@ PYBIND11_MODULE(market_logic, m) {
   m.doc() = "market_logic";
   py::class_<sm::Record>(m, "Record")
       .def(py::init<sm::time_point, int>())
-      .def_readwrite("datetime", &sm::Record::dateTime)
+      .def_readwrite("date", &sm::Record::dateTime)
       .def_readwrite("value", &sm::Record::price);
 
   py::class_<sm::Product>(m, "Product")

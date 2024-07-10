@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from logging import getLogger
 from typing import Annotated
 
@@ -214,9 +214,14 @@ async def get_product_by_id_(
     return product
 
 
+def _utc_now() -> datetime:
+    """Helper Function that generates a datetime of now in UTC"""
+    return datetime.now(timezone.utc)
+
+
 def _10_minutess_ago() -> datetime:
     """Helper Function that generates a datetime of 10 minutes ago from invocation"""
-    return datetime.now() - timedelta(minutes=10)
+    return datetime.now(timezone.utc) - timedelta(minutes=10)
 
 
 @app.get(
@@ -229,9 +234,21 @@ def _10_minutess_ago() -> datetime:
 async def get_product_records_(
     product: Annotated[Product, Depends(get_market_product)],
     from_: Annotated[datetime, Query(alias="from", default_factory=_10_minutess_ago)],
-    to_: Annotated[datetime, Query(alias="to", default_factory=datetime.now)],
+    to_: Annotated[datetime, Query(alias="to", default_factory=_utc_now)],
 ) -> ProductRecordsModel:
-    records = product.get_records(from_, to_)
+    # Convert the datetime objects to naive UTC datetime objects for the database
+    # this should work if datetimes provided are aware
+    # if not maybe too?
+
+    logger.info(from_)
+    logger.info(to_)
+    naive_from = from_.astimezone(timezone.utc)
+    naive_to = to_.astimezone(timezone.utc)
+
+    logger.info(naive_from)
+    logger.info(naive_to)
+
+    records = product.get_records(naive_from, naive_to)
     if records:
         return ProductRecordsModel(
             product_id=product.id,
