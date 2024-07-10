@@ -23,7 +23,23 @@ namespace ProjectStockMarket {
  */
 class DBConnector {
  public:
+  /**
+   * @brief Initializes the database connection. Needs to be called before
+   * using any Database function else we will work on nullptr.
+   *
+   * @param path The path to the database file. :memory: for in-memory database.
+   */
   static void initDB(std::string path);
+
+  /**
+   * @brief Adds a trigger to the database that deletes on insert
+   * any pricerecord that is over the the limit. Deletes old records first.
+   * Each product has its own limit
+   *
+   * @param limit The limit of records for each product to keep.
+   */
+  static void addPriceRecordLimitTrigger(int limit);
+
   /**
    * @brief Default destructor, SQLiteCpp manages the database connection
    * automatically.
@@ -33,6 +49,9 @@ class DBConnector {
   /**
    * @brief Registers a new user in the database. Also creates the user row with
    * initial balance.
+   *
+   * @param account The account to register.
+   * @param display_name The display name of the user.
    */
   static void registerAccount(const Account& account,
                               const std::string& display_name);
@@ -42,6 +61,7 @@ class DBConnector {
    * Throws error if the user was not found.
    *
    * @param p_user_id The user_id to get.
+   * @return The user found.
    */
   static User getUser(int p_user_id);
 
@@ -49,11 +69,17 @@ class DBConnector {
    * @brief Updates an existing user in the database.
    * If the User isn't registered it throws an error.
    *
+   * @param p_user The user to update.
    */
   static void updateUser(const User& p_user);
 
   /**
-   * @brief Adds a new Product to the database.
+   * @brief Adds a new Product to the database and market.
+   *
+   * @param p_product_name The name of the product to add.
+   * @param p_count The amount of the product to add.
+   *
+   * @return The product added.
    */
   static Product addProduct(const std::string& p_product_name, int p_count);
 
@@ -154,13 +180,16 @@ class DBConnector {
    * @brief Checks if the given credentials are valid. Returns the account id if
    * they are. Raises an exception if they are not.
    * @param account The account to verify.
-   * @return The account id if the credentials are valid.
+   * @returns The account id if the credentials are valid.
    * @throw std::runtime_error if the credentials are invalid.
    */
   static int verifyCredentials(const Account& account);
 
   /**
    * @brief Adds a token to the database for a user.
+   * @param user_id The user id to add the token for.
+   * @param token The token to add.
+   * @returns The token added.
    */
   static std::string addToken(int user_id, const std::string& token);
 
@@ -170,6 +199,11 @@ class DBConnector {
    */
   static void removeToken(const std::string& p_token);
 
+  /**
+   * @brief Gets a user by their token.
+   * @param p_token The token to get the user by.
+   * @returns The user found.
+   */
   static User getUserByToken(const std::string& p_token);
 
  private:
@@ -179,11 +213,8 @@ class DBConnector {
   static void createTables();
 
   /**
-   * @brief Initializes the DBConnector.
-   *
-   * @return The initialized DBConnector.
+   * @brief Pointer to our database connection
    */
-
   static std::unique_ptr<SQLite::Database>
       m_database;  ///< The database connection.
 };

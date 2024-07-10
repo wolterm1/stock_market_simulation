@@ -88,6 +88,26 @@ void DBConnector::createTables() {
   }
 }
 
+void DBConnector::addPriceRecordLimitTrigger(int limit) {
+  try {
+    SQLite::Statement query(*m_database,
+                            "CREATE TRIGGER IF NOT EXISTS prune_records "
+                            "AFTER INSERT ON PriceRecord "
+                            "FOR EACH ROW "
+                            "BEGIN "
+                            "DELETE FROM PriceRecord WHERE rowid IN ("
+                            "SELECT entry_num FROM PriceRecord "
+                            "WHERE product_id = NEW.product_id "
+                            "ORDER BY date_time DESC "
+                            "OFFSET ?);"
+                            "END;");
+    query.bind(1, limit);
+    query.exec();
+  } catch (const std::exception& e) {
+    throw std::runtime_error("Failed to add trigger: " + std::string(e.what()));
+  }
+}
+
 void DBConnector::registerAccount(const Account& account,
                                   const std::string& display_name) {
   // Check if account already exists
@@ -366,41 +386,6 @@ std::vector<Record> DBConnector::getRecords(const Product& product,
     return records;
   } catch (const std::exception& e) {
     throw std::runtime_error("Failed to get record cache: " +
-                             std::string(e.what()));
-  }
-}
-
-void DBConnector::pruneRecords(Product p_product, int keep_amount) {
-  try {
-    SQLite::Statement query(
-        *m_database,
-        "SELECT entry_num FROM PriceRecord WHERE product_id = ? ORDER BY "
-        "date_time DESC, entry_num DESC LIMIT ?");
-    query.bind(1, p_product.getId());
-    query.bind(2, keep_amount);
-    std::vector<int> latest_entry_nums;
-    while (query.executeStep()) {
-      latest_entry_nums.push_back(query.getColumn(0).getInt());
-    }
-    if (latest_entry_nums.size() < keep_amount) {
-      return;
-    }
-    std::string entry_nums_to_keep;
-    for (size_t i = 0; i < latest_entry_nums.size(); ++i) {
-      entry_nums_to_keep += std::to_string(latest_entry_nums[i]);
-      if (i < latest_entry_nums.size() - 1) {
-        entry_nums_to_keep += ",";
-      }
-    }
-    std::string delete_query_str =
-        "DELETE FROM PriceRecord WHERE product_id = ? AND entry_num NOT IN (" +
-        entry_nums_to_keep + ")";
-    SQLite::Statement deleteQuery(*m_database, delete_query_str);
-    deleteQuery.bind(1, p_product.getId());
-    deleteQuery.exec();
-
-  } catch (const std::exception& e) {
-    throw std::runtime_error("Failed to reduce records: " +
                              std::string(e.what()));
   }
 }

@@ -12,6 +12,7 @@ namespace ProjectStockMarket {
 
 MarketPlace::MarketPlace(int limit_record_entries)
     : m_limit_record_entries(limit_record_entries) {
+  DBConnector::addPriceRecordLimitTrigger(m_limit_record_entries);
   timer.setCallback([this]() { updateProductPrices(); });
 }
 
