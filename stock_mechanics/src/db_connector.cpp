@@ -1,8 +1,11 @@
 #include "db_connector.hpp"
-#include "exception_classes.hpp"
 
 #include <chrono>
+
+#include "exception_classes.hpp"
+
 // #include <format>
+#include <cmath>
 #include <functional>
 #include <iomanip>
 #include <iostream>
@@ -159,7 +162,8 @@ User DBConnector::getUser(int p_user_id) {
       int balance = query.getColumn(1).getInt();
       return User(p_user_id, name, balance);
     } else {
-      throw UserNotFound("User not found for account ID");
+      throw UserNotFound("User not found for account ID " +
+                         std::to_string(p_user_id));
     }
   } catch (const std::exception& e) {
     throw std::runtime_error("Failed to find user: " + std::string(e.what()));
@@ -204,7 +208,10 @@ Product DBConnector::getProduct(int p_product_id) {
   SQLite::Statement findProductName(*m_database,
                                     "SELECT name FROM Product WHERE id = ?");
   findProductName.bind(1, p_product_id);
-  findProductName.executeStep();
+  if (!findProductName.executeStep()) {
+    throw ProductNotFound("Product not found for ID " +
+                          std::to_string(p_product_id));
+  }
   return Product(p_product_id, findProductName.getColumn(0).getText());
 }
 
@@ -217,13 +224,16 @@ void DBConnector::updateMarketProductEntry(const Product& p_product,
   query.bind(1, p_product.getId());
 
   if (!query.executeStep()) {
-    throw std::runtime_error("Product not found in market");
+    throw ProductNotFound("Product " + p_product.getName() +
+                          " not found in market");
   }
 
   int currentAmount = query.getColumn(0).getInt();
   int newAmount = currentAmount + p_change;
   if (newAmount < 0) {  // Not Enough Products
-    throw OutOfStock("Not enough product in market");
+    throw OutOfStock("Tried to buy " + std::to_string(std::abs(p_change)) +
+                     " products, but only " + std::to_string(currentAmount) +
+                     " are available");
   }
 
   SQLite::Statement updateQuery(
@@ -281,7 +291,9 @@ void DBConnector::updateUserProductEntry(const User& p_user,
   }
   int newAmount = currentAmount + p_change;
   if (newAmount < 0) {  // Not Enough Products
-    throw ProductNotFound("Not enough product in inventory");
+    throw NotInInventory("Tried to sell " + std::to_string(std::abs(p_change)) +
+                         " products, but only " +
+                         std::to_string(currentAmount) + " are available");
   } else if (currentAmount == 0 && newAmount == 0) {  // No Entry and no change
     return;
   } else if (newAmount == 0) {  // Entry exists, but new amount is 0, so delete
@@ -361,8 +373,7 @@ std::vector<Record> DBConnector::getAllRecords(const Product& product) {
     }
     return records;
   } catch (const std::exception& e) {
-    throw std::runtime_error("Failed to get record cache: " +
-                             std::string(e.what()));
+    throw std::runtime_error("Failed to get records: " + std::string(e.what()));
   }
 }
 
@@ -386,8 +397,7 @@ std::vector<Record> DBConnector::getRecords(const Product& product,
     }
     return records;
   } catch (const std::exception& e) {
-    throw std::runtime_error("Failed to get record cache: " +
-                             std::string(e.what()));
+    throw std::runtime_error("Failed to get records: " + std::string(e.what()));
   }
 }
 
@@ -419,7 +429,8 @@ int DBConnector::verifyCredentials(const Account& account) {
   if (query.executeStep()) {
     return query.getColumn(0).getInt();
   } else {
-    throw IncorrectPassword(std::string(account.username) + " Invalid Username or Password");
+    throw IncorrectPassword(std::string(account.username) +
+                            " Invalid Username or Password");
   }
 }
 

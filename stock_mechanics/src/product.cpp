@@ -27,6 +27,3 @@ std::vector<Record> Product::getRecords(time_point from, time_point to) const {
 void Product::addRecord(Record record) {
   DBConnector::addRecord(*this, record);
 }
-void Product::reduceRecordCountToX(int limit) {
-  DBConnector::pruneRecords(*this, limit);
-}

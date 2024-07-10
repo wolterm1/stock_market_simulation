@@ -3,61 +3,53 @@
 
 namespace ProjectStockMarket {
 
-class UserNotFound : public std::exception {
- public:
-  UserNotFound(const std::string s);
-
- private:
-  std::string m_message;
+struct StockMarketException : public std::runtime_error {
+  explicit StockMarketException(const std::string& msg)
+      : std::runtime_error(msg) {}
+  explicit StockMarketException(const char* msg) : std::runtime_error(msg) {}
 };
 
-class ProductNotFound : public std::exception {
- public:
-  ProductNotFound(const std::string s);
-
- private:
-  std::string m_message;
+struct UserNotFound : public StockMarketException {
+  explicit UserNotFound(const std::string& msg) : StockMarketException(msg) {}
+  explicit UserNotFound(const char* msg) : StockMarketException(msg) {}
 };
 
-class NotEnoughMoney : public std::exception {
- public:
-  NotEnoughMoney(const std::string s);
-
- private:
-  std::string m_message;
+struct ProductNotFound : public StockMarketException {
+  explicit ProductNotFound(const std::string& msg)
+      : StockMarketException(msg) {}
+  explicit ProductNotFound(const char* msg) : StockMarketException(msg) {}
 };
 
-class OutOfStock : public std::exception {
- public:
-  OutOfStock(const std::string s);
-
- private:
-  std::string m_message;
+struct NotEnoughMoney : public StockMarketException {
+  explicit NotEnoughMoney(const std::string& msg) : StockMarketException(msg) {}
+  explicit NotEnoughMoney(const char* msg) : StockMarketException(msg) {}
 };
 
-class IncorrectPassword : public std::exception {
- public:
-  IncorrectPassword(const std::string s);
-
- private:
-  std::string m_message;
+struct OutOfStock : public StockMarketException {
+  explicit OutOfStock(const std::string& msg) : StockMarketException(msg) {}
+  explicit OutOfStock(const char* msg) : StockMarketException(msg) {}
 };
 
-class InvalidToken : public std::exception {
- public:
-  InvalidToken(const std::string s);
-
- private:
-  std::string m_message;
+struct IncorrectPassword : public StockMarketException {
+  explicit IncorrectPassword(const std::string& msg)
+      : StockMarketException(msg) {}
+  explicit IncorrectPassword(const char* msg) : StockMarketException(msg) {}
 };
 
+struct InvalidToken : public StockMarketException {
+  explicit InvalidToken(const std::string& msg) : StockMarketException(msg) {}
+  explicit InvalidToken(const char* msg) : StockMarketException(msg) {}
+};
 
-class AccountAlreadyExists : public std::exception {
- public:
-  AccountAlreadyExists(const std::string s);
+struct AccountAlreadyExists : public StockMarketException {
+  explicit AccountAlreadyExists(const std::string& msg)
+      : StockMarketException(msg) {}
+  explicit AccountAlreadyExists(const char* msg) : StockMarketException(msg) {}
+};
 
- private:
-  std::string m_message;
+struct NotInInventory : public StockMarketException {
+  explicit NotInInventory(const std::string& msg) : StockMarketException(msg) {}
+  explicit NotInInventory(const char* msg) : StockMarketException(msg) {}
 };
 
 }  // namespace ProjectStockMarket
