@@ -88,13 +88,13 @@ async def get_current_user_model(
         UserModel: Model describing the current user
     """
     inventory = [
-        InventoryItemModel(product_id=entry.product.get_id(), quantity=entry.amount)
+        InventoryItemModel(product_id=entry.product.id, quantity=entry.amount)
         for entry in user.get_inventory()
     ]
     return UserModel(
-        user_id=user.get_id(),
-        user_name=user.get_name(),
-        balance=user.get_balance(),
+        user_id=user.id,
+        user_name=user.name,
+        balance=user.balance,
         inventory=inventory,
     )
 
@@ -124,7 +124,7 @@ async def get_product_model(
         ProductModel: Model representing the product
     """
     return ProductModel(
-        product_id=product.get_id(),
+        product_id=product.id,
         product_name=product.name,
     )
 
@@ -233,7 +233,7 @@ async def get_product_records_(
     records = product.get_records(from_, to_)
     if records:
         return ProductRecordsModel(
-            product_id=product.get_id(),
+            product_id=product.id,
             records=[
                 ProductRecordModel(date=record.date, value=record.value)
                 for record in records
@@ -243,7 +243,7 @@ async def get_product_records_(
         )
     else:
         return ProductRecordsModel(
-            product_id=product.get_id(),
+            product_id=product.id,
             records=[],
             start_date=from_,
             end_date=to_,
@@ -254,7 +254,7 @@ async def get_product_records_(
 async def get_all_products_() -> list[ProductModel]:
     return [
         ProductModel(
-            product_id=product.get_id(),
+            product_id=product.id,
             product_name=product.name,
         )
         for product in market.get_all_products()
@@ -265,7 +265,7 @@ async def get_all_products_() -> list[ProductModel]:
 async def get_market_() -> list[InventoryItemModel]:
     return [
         InventoryItemModel(
-            product_id=entry.product.get_id(),
+            product_id=entry.product.id,
             quantity=entry.amount,
         )
         for entry in market.get_inventory()
