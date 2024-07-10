@@ -1,4 +1,5 @@
 #include "db_connector.hpp"
+#include "exception_classes.hpp"
 
 #include <chrono>
 // #include <format>
@@ -116,7 +117,7 @@ void DBConnector::registerAccount(const Account& account,
         *m_database, "SELECT id FROM Account WHERE username = ?");
     check_account.bind(1, account.username);
     if (check_account.executeStep()) {
-      throw std::runtime_error("Account already exists");
+      throw AccountAlreadyExists("Account already exists");
     }
   } catch (const std::exception& e) {
     throw std::runtime_error("Failed to check for existing account: " +
@@ -158,7 +159,7 @@ User DBConnector::getUser(int p_user_id) {
       int balance = query.getColumn(1).getInt();
       return User(p_user_id, name, balance);
     } else {
-      throw std::runtime_error("User not found for account ID");
+      throw UserNotFound("User not found for account ID");
     }
   } catch (const std::exception& e) {
     throw std::runtime_error("Failed to find user: " + std::string(e.what()));
@@ -222,7 +223,7 @@ void DBConnector::updateMarketProductEntry(const Product& p_product,
   int currentAmount = query.getColumn(0).getInt();
   int newAmount = currentAmount + p_change;
   if (newAmount < 0) {  // Not Enough Products
-    throw std::runtime_error("Not enough product in market");
+    throw OutOfStock("Not enough product in market");
   }
 
   SQLite::Statement updateQuery(
@@ -280,7 +281,7 @@ void DBConnector::updateUserProductEntry(const User& p_user,
   }
   int newAmount = currentAmount + p_change;
   if (newAmount < 0) {  // Not Enough Products
-    throw std::runtime_error("Not enough product in inventory");
+    throw ProductNotFound("Not enough product in inventory");
   } else if (currentAmount == 0 && newAmount == 0) {  // No Entry and no change
     return;
   } else if (newAmount == 0) {  // Entry exists, but new amount is 0, so delete
@@ -418,7 +419,7 @@ int DBConnector::verifyCredentials(const Account& account) {
   if (query.executeStep()) {
     return query.getColumn(0).getInt();
   } else {
-    throw std::runtime_error("Invalid Username or Password");
+    throw IncorrectPassword(std::string(account.username) + " Invalid Username or Password");
   }
 }
 
@@ -447,9 +448,7 @@ void DBConnector::removeToken(const std::string& p_token) {
     query.exec();
     int changes = m_database->getChanges();
     if (changes <= 0) {
-      throw std::runtime_error("token not valid");
-    } else if (changes > 1) {
-      throw std::runtime_error("duplicate token was removed");
+      throw InvalidToken("token not valid");
     }
   } catch (const std::exception& e) {
     throw std::runtime_error("" + std::string(e.what()));
@@ -468,7 +467,7 @@ User DBConnector::getUserByToken(const std::string& p_token) {
     int balance = query.getColumn(2).getInt();
     return User(id, name, balance);
   } else {
-    throw std::runtime_error("Token not valid");
+    throw InvalidToken("Token not valid");
   }
 }
 

@@ -51,4 +51,13 @@ class InvalidToken : public std::exception {
   std::string m_message;
 };
 
+
+class AccountAlreadyExists : public std::exception {
+ public:
+  AccountAlreadyExists(const std::string s);
+
+ private:
+  std::string m_message;
+};
+
 }  // namespace ProjectStockMarket

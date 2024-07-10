@@ -23,3 +23,9 @@ ProjectStockMarket::IncorrectPassword::IncorrectPassword(const std::string p)  :
 ProjectStockMarket::InvalidToken::InvalidToken(const std::string p)  :  m_message(p)
 {
 }
+
+ProjectStockMarket::AccountAlreadyExists::AccountAlreadyExists(const std::string p) : m_message(p)
+{
+}
+
+

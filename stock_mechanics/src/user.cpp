@@ -1,5 +1,6 @@
 #include "user.hpp"
 
+#include "exception_classes.hpp"
 #include "db_connector.hpp"
 
 using namespace ProjectStockMarket;
@@ -8,7 +9,7 @@ void User::buyProduct(const Product& p_product, int p_amount) {
   int current_price = p_product.getCurrentPrice();
   int product_total_price = current_price * p_amount;
   if (m_balance < product_total_price)
-    throw std::runtime_error("not enough balance to buy these product amount");
+    throw NotEnoughMoney("not enough balance to buy these product amount");
   DBConnector::updateMarketProductEntry(p_product, -p_amount);
   DBConnector::updateUserProductEntry(*this, p_product, p_amount);
   m_balance -= product_total_price;

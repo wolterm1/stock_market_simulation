@@ -95,15 +95,27 @@ pybind11_add_module(auth
   ${SRC_FILES}
 )
 
+#install(TARGETS market_logic
+#COMPONENT python
+#DESTINATION "."
+#)
+#
+#install(TARGETS auth
+#COMPONENT python
+#DESTINATION "."
+#)
+
+###################################################################
 install(TARGETS market_logic
   COMPONENT python
-  DESTINATION "."
+  DESTINATION "${CMAKE_SOURCE_DIR}/../server/trading_server/modules"
 )
 
 install(TARGETS auth
   COMPONENT python
-  DESTINATION "."
+  DESTINATION "${CMAKE_SOURCE_DIR}/../server/trading_server/modules"
 )
+
 
 # Link libraries
 target_link_libraries(auth PRIVATE SQLiteCpp)
