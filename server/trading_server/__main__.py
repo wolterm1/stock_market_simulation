@@ -46,7 +46,7 @@ try:
         Product,
         MarketPlace,
         get_product,
-        get_user,
+        init_database,
     )
 
     app = FastAPI()
@@ -58,6 +58,7 @@ except ImportError as e:
 
 logger = getLogger("uvicorn")
 
+init_database("./stockmarket.db")
 market = MarketPlace(60 * 60)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")

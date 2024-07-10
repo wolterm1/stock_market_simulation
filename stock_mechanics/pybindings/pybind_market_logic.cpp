@@ -51,6 +51,7 @@ PYBIND11_MODULE(market_logic, m) {
   // wenn irgendwas bricht dann wahrscheinlich hier
   m.def("get_product", sm::DBConnector::getProduct);
   m.def("get_user", sm::DBConnector::getUser);
+  m.def("init_database", sm::DBConnector::initDB);
 
   // py::class_<sm::ProductNotFound>(m, "ProductNotFound")
   //     .def(py::init<std::string>());

@@ -103,9 +103,10 @@ void DBConnector::addPriceRecordLimitTrigger(int limit) {
                             "SELECT entry_num FROM PriceRecord "
                             "WHERE product_id = NEW.product_id "
                             "ORDER BY date_time DESC "
-                            "OFFSET ?);"
-                            "END;");
-    query.bind(1, limit);
+                            "LIMIT -1 OFFSET " +
+                                std::to_string(limit) +
+                                ");"
+                                "END;");
     query.exec();
   } catch (const std::exception& e) {
     throw std::runtime_error("Failed to add trigger: " + std::string(e.what()));
