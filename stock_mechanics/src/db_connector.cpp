@@ -116,15 +116,7 @@ void DBConnector::addPriceRecordLimitTrigger(int limit) {
 void DBConnector::registerAccount(const Account& account,
                                   const std::string& display_name) {
   // Check if account already exists
-  std::cout << "check if account exists..." << std::endl;
-  bool isNull = DBConnector::m_database.get() == nullptr;
-  if (isNull) {
-    std::cout << "database is null" << std::endl;
-    return;
-  }
   try {
-    std::cout << "before state" << account.username << account.username
-              << std::endl;
     SQLite::Statement check_account(
         *m_database, "SELECT id FROM Account WHERE username = ?");
     check_account.bind(1, account.username);
@@ -135,7 +127,6 @@ void DBConnector::registerAccount(const Account& account,
     throw std::runtime_error("Failed to check for existing account: " +
                              std::string(e.what()));
   }
-  std::cout << "registering account..." << std::endl;
   // Register account
   try {
     SQLite::Statement query(
@@ -147,7 +138,6 @@ void DBConnector::registerAccount(const Account& account,
     throw std::runtime_error("Failed to register account: " +
                              std::string(e.what()));
   }
-  std::cout << "registered account" << std::endl;
 
   // add corresponding user
   try {
@@ -160,7 +150,6 @@ void DBConnector::registerAccount(const Account& account,
   } catch (const std::exception& e) {
     throw std::runtime_error("Failed to add user: " + std::string(e.what()));
   }
-  std::cout << "added user" << std::endl;
 }
 
 User DBConnector::getUser(int p_user_id) {
@@ -217,7 +206,6 @@ Product DBConnector::addProduct(const std::string& p_product_name,
 }
 
 Product DBConnector::getProduct(int p_product_id) {
-  std::cout << m_database.get() << std::endl;
   SQLite::Statement findProductName(*m_database,
                                     "SELECT name FROM Product WHERE id = ?");
   findProductName.bind(1, p_product_id);
@@ -393,8 +381,6 @@ std::vector<Record> DBConnector::getAllRecords(const Product& product) {
 std::vector<Record> DBConnector::getRecords(const Product& product,
                                             const time_point& from,
                                             const time_point& to) {
-  std::cout << "from:" << to_iso_string(from) << std::endl;
-  std::cout << "to:" << to_iso_string(to) << std::endl;
   SQLite::Statement query(
       *m_database,
       "SELECT date_time, price FROM PriceRecord WHERE product_id = ? AND "

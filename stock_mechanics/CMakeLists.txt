@@ -57,6 +57,10 @@ include(GoogleTest)
 # Enable GoogleTest
 enable_testing()
 
+# Blöde unnötige Fehler ignorieren
+set(SQLITECPP_RUN_CPPLINT OFF)
+
+# Externe Bibliotheken bauen
 add_subdirectory(external/SQLiteCpp)
 add_subdirectory(external/pybind11)
 
@@ -81,44 +85,28 @@ add_executable(main
 
 # Für Projekte, die global gebaut werden wollen, forcen wir den Pfad
 # set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/build/")
-
-# Blöde unnötige Fehler ignorieren
-set(SQLITECPP_RUN_CPPLINT OFF)
-
 pybind11_add_module(market_logic
   pybindings/pybind_market_logic.cpp
   ${SRC_FILES}
 )
 
-pybind11_add_module(auth
-  pybindings/pybind_auth.cpp
-  ${SRC_FILES}
-)
-
-#install(TARGETS market_logic
-#COMPONENT python
-#DESTINATION "."
-#)
+# install(TARGETS market_logic
+# COMPONENT python
+# DESTINATION "."
+# )
 #
-#install(TARGETS auth
-#COMPONENT python
-#DESTINATION "."
-#)
+# install(TARGETS auth
+# COMPONENT python
+# DESTINATION "."
+# )
 
-###################################################################
+# ##################################################################
 install(TARGETS market_logic
   COMPONENT python
   DESTINATION "${CMAKE_SOURCE_DIR}/../server/trading_server/modules"
 )
 
-install(TARGETS auth
-  COMPONENT python
-  DESTINATION "${CMAKE_SOURCE_DIR}/../server/trading_server/modules"
-)
-
-
 # Link libraries
-target_link_libraries(auth PRIVATE SQLiteCpp)
 target_link_libraries(market_logic PRIVATE SQLiteCpp)
 target_link_libraries(main
   SQLiteCpp

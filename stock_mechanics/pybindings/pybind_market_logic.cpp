@@ -54,6 +54,17 @@ PYBIND11_MODULE(market_logic, m) {
   m.def("get_user", sm::DBConnector::getUser);
   m.def("init_database", sm::DBConnector::initDB);
 
+  py::class_<sm::Account>(m, "Account")
+      .def(py::init<std::string, std::string>())
+      .def_readwrite("username", &sm::Account::username)
+      .def_readwrite("password", &sm::Account::password);
+
+  m.def("db_verify_credentials", sm::DBConnector::verifyCredentials);
+  m.def("db_register_account", sm::DBConnector::registerAccount);
+  m.def("db_add_token", sm::DBConnector::addToken);
+  m.def("db_remove_token", sm::DBConnector::removeToken);
+  m.def("db_get_user_by_token", sm::DBConnector::getUserByToken);
+
   // py::class_<sm::ProductNotFound>(m, "ProductNotFound")
   //     .def(py::init<std::string>());
 
@@ -78,4 +89,7 @@ PYBIND11_MODULE(market_logic, m) {
   py::register_exception<sm::NotEnoughMoney>(m, "NotEnoughMoney");
   py::register_exception<sm::NotInInventory>(m, "NotInInventory");
   py::register_exception<sm::OutOfStock>(m, "OutOfStock");
+  py::register_exception<sm::IncorrectPassword>(m, "IncorrectPassword");
+  py::register_exception<sm::InvalidToken>(m, "InvalidToken");
+  py::register_exception<sm::AccountAlreadyExists>(m, "AccountAlreadyExists");
 }

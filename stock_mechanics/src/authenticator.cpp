@@ -31,8 +31,10 @@ std::string Authenticator::login(const Account& account) {
   return token;
 }
 
-std::string Authenticator::registerAccount(const Account& account,
+std::string Authenticator::registerAccount(const std::string& username,
+                                           const std::string& password,
                                            const std::string& display_name) {
+  Account account(username, password);
   DBConnector::registerAccount(account, display_name);
   return login(account);
 }

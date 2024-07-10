@@ -43,8 +43,8 @@ TEST(TestDatabase, ProductsAuthBuySell) {
   banana.addRecord(sm::Record(std::chrono::system_clock::now(), 1));
   pineapple.addRecord(sm::Record(std::chrono::system_clock::now(), 1));
 
-  sm::Account account("admin", "admin");
-  std::string token = sm::Authenticator::registerAccount(account, "Admin");
+  std::string token =
+      sm::Authenticator::registerAccount("admin", "admin", "Admin");
   sm::User user = sm::Authenticator::findUserByToken(token);
   ASSERT_EQ(user.getName(), "Admin") << "User not found by token";
 
@@ -97,6 +97,7 @@ TEST(TestDatabase, ProductsAuthBuySell) {
   ASSERT_THROW(sm::Authenticator::findUserByToken(token), std::exception)
       << "User not logged out, Token still exists";
 
+  sm::Account account("admin", "admin");
   token = sm::Authenticator::login(account);
   sm::User user3 = sm::Authenticator::findUserByToken(token);
   ASSERT_EQ(user3.getName(), "Admin")
@@ -169,4 +170,10 @@ TEST(TestDatabase, Records) {
       << "Record 3 not filtered by time range";
   ASSERT_EQ(filtered_records[2].price, record4.price)
       << "Record 4 not filtered by time range";
+}
+
+TEST(TestDatabase, loginWhileGenerating) {
+  sm::DBConnector::initDB(":memory:");
+  sm::MarketPlace mp(3600, true);
+  sm::Authenticator::registerAccount("admin", "admin", "Admin");
 }

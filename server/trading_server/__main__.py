@@ -2,12 +2,11 @@ from datetime import datetime, timedelta, timezone
 from logging import getLogger
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, Query
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel
-from contextlib import asynccontextmanager
-import asyncio
+
+import secrets
 
 from pathlib import Path
 
@@ -29,21 +28,23 @@ from trading_server.models import (
 from trading_server.payloads import AmountPayload
 
 try:
-    from trading_server.modules.auth import (  # type: ignore
+    from trading_server.modules.market_logic import (  # type: ignore
         InvalidToken,
         IncorrectPassword,
-        Account,
-        Authenticator,
-    )
-    from trading_server.modules.market_logic import (  # type: ignore
         NotEnoughMoney,
         OutOfStock,
         ProductNotFound,
         User,
         Product,
         MarketPlace,
+        Account,
         get_product,
         init_database,
+        db_register_account,
+        db_verify_credentials,
+        db_add_token,
+        db_remove_token,
+        db_get_user_by_token,
     )
 
     app = FastAPI()
@@ -72,7 +73,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> Use
     Returns:
         User: User object representing the current user
     """
-    user = Authenticator.find_user_by_token(token)
+    user = db_get_user_by_token(token)
     return user
 
 
@@ -155,9 +156,9 @@ async def index_() -> dict[str, str]:
 )
 async def login_(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:
     account = Account(form_data.username, form_data.password)
-    logger.info((account.username, account.password))
-    token = Authenticator.authenticate_user(account)
-
+    account_id = db_verify_credentials(account)
+    token = secrets.token_hex(16)
+    db_add_token(account_id, token)
     return Token(access_token=token)
 
 
@@ -172,9 +173,12 @@ async def register_(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ) -> Token:
     account = Account(form_data.username, form_data.password)
-    Authenticator.register(account, form_data.username)
-    # token = Authenticator.authenticate_user(account)
-    return Token(access_token="test")
+    db_register_account(account, form_data.username)
+    # Login the user
+    account_id = db_verify_credentials(account)
+    token = secrets.token_hex(16)
+    db_add_token(account_id, token)
+    return Token(access_token=token)
 
 
 @app.put(
@@ -185,7 +189,7 @@ async def register_(
     """,
 )
 async def logout_(token: Annotated[str, Depends(oauth2_scheme)]) -> None:
-    Authenticator.logout(token)
+    db_remove_token(token)
 
 
 @app.get(

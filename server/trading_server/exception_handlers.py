@@ -1,13 +1,11 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from trading_server.modules.auth import (
-    IncorrectPassword,
-    InvalidToken,
-)
 from trading_server.modules.market_logic import (
     NotEnoughMoney,
     OutOfStock,
     ProductNotFound,
+    IncorrectPassword,
+    InvalidToken,
 )
 
 

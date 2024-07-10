@@ -14,7 +14,8 @@ struct Authenticator {
    * @returns the generated token
    */
   static std::string login(const Account& account);
-  static std::string registerAccount(const Account& account,
+  static std::string registerAccount(const std::string& username,
+                                     const std::string& password,
                                      const std::string& display_name);
   /**
    * @brief removes token from db
