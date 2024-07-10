@@ -10,6 +10,8 @@
 #include "record.hpp"
 #include "user.hpp"
 
+#include "exception_classes.hpp"
+
 namespace py = pybind11;
 namespace sm = ProjectStockMarket;
 
@@ -50,4 +52,18 @@ PYBIND11_MODULE(market_logic, m) {
   // wenn irgendwas bricht dann wahrscheinlich hier
   m.def("get_product", sm::DBConnector::getProduct);
   m.def("get_user", sm::DBConnector::getUser);
+  
+  py::class_<sm::ProductNotFound>(m, "ProductNotFound")
+    .def(py::init<std::string>())
+  py::class_<sm::NotEnoughMoney>(m, "NotEnoughMoney")
+    .def(py::init<std::string>())
+  py::class_<sm::OutOfStock>(m, "OutOfStock")
+    .def(py::init<std::string>())
+  py::class_<sm::IncorrectPassword>(m, "IncorrectPassword")
+    .def(py::init<std::string>())
+  py::class_<sm::InvalidToken>(m, "InvalidToken")
+    .def(py::init<std::string>())
+  py::class_<sm::AccountAlreadyExists>(m, "AccountAlreadyExists")
+    .def(py::init<std::string>())
+  
 }
