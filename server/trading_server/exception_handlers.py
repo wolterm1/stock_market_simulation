@@ -6,7 +6,23 @@ from trading_server.modules.market_logic import (
     ProductNotFound,
     IncorrectPassword,
     InvalidToken,
+    NotInInventory,
+    AccountAlreadyExists,
 )
+
+
+async def account_already_exists_handler(request: Request, exc: AccountAlreadyExists):
+    return JSONResponse(
+        status_code=400,
+        content={"message": str(exc)},
+    )
+
+
+async def not_in_inventory_handler(request: Request, exc: NotInInventory):
+    return JSONResponse(
+        status_code=400,
+        content={"message": str(exc)},
+    )
 
 
 async def product_not_found_handler(request: Request, exc: ProductNotFound):

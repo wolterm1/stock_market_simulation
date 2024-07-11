@@ -86,7 +86,7 @@ void DBConnector::createTables() {
         "date_time TEXT NOT NULL, "
         "price INTEGER NOT NULL, "
         "FOREIGN KEY(product_id) REFERENCES Product(id));");
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw std::runtime_error("Failed to create tables: " +
                              std::string(e.what()));
   }
@@ -108,7 +108,7 @@ void DBConnector::addPriceRecordLimitTrigger(int limit) {
                                 ");"
                                 "END;");
     query.exec();
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw std::runtime_error("Failed to add trigger: " + std::string(e.what()));
   }
 }
@@ -123,7 +123,7 @@ void DBConnector::registerAccount(const Account& account,
     if (check_account.executeStep()) {
       throw AccountAlreadyExists("Account already exists");
     }
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw std::runtime_error("Failed to check for existing account: " +
                              std::string(e.what()));
   }
@@ -134,7 +134,7 @@ void DBConnector::registerAccount(const Account& account,
     query.bind(1, account.username);
     query.bind(2, account.password);
     query.exec();
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw std::runtime_error("Failed to register account: " +
                              std::string(e.what()));
   }
@@ -147,7 +147,7 @@ void DBConnector::registerAccount(const Account& account,
     query.bind(2, display_name);
     query.bind(3, 1000);  // INITIAL_BALANCE
     query.exec();
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw std::runtime_error("Failed to add user: " + std::string(e.what()));
   }
 }
@@ -166,7 +166,7 @@ User DBConnector::getUser(int p_user_id) {
       throw UserNotFound("User not found for account ID " +
                          std::to_string(p_user_id));
     }
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw std::runtime_error("Failed to find user: " + std::string(e.what()));
   }
 }
@@ -179,7 +179,7 @@ void DBConnector::updateUser(const User& p_user) {
     query.bind(2, p_user.getBalance());
     query.bind(3, p_user.getId());
     query.exec();
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw std::runtime_error("Failed to update user: " + std::string(e.what()));
   }
 }
@@ -200,7 +200,7 @@ Product DBConnector::addProduct(const std::string& p_product_name,
     addProductToMarket.exec();
 
     return Product(m_database->getLastInsertRowid(), p_product_name);
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw std::runtime_error("Failed to add product: " + std::string(e.what()));
   }
 }
@@ -255,7 +255,7 @@ std::vector<ProductEntry> DBConnector::getMarketInventory() {
       productEntries.emplace_back(getProduct(id), count);
     }
     return productEntries;
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw std::runtime_error("Failed to get all productentries from market: " +
                              std::string(e.what()));
   }
@@ -270,7 +270,7 @@ std::vector<Product> DBConnector::getAllProducts() {
       products.emplace_back(getProduct(id));
     }
     return products;
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw std::runtime_error("Failed to get all products: " +
                              std::string(e.what()));
   }
@@ -339,7 +339,7 @@ std::vector<ProductEntry> DBConnector::getUserInventory(User p_user) {
       products.emplace_back(getProduct(id), count);
     }
     return products;
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw std::runtime_error("Failed to get all products from inventory: " +
                              std::string(e.what()));
   }
@@ -354,7 +354,7 @@ void DBConnector::addRecord(const Product& p_product, const Record& p_record) {
     query.bind(2, to_iso_string(p_record.dateTime));
     query.bind(3, p_record.price);
     query.exec();
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw std::runtime_error("Failed to add record: " + std::string(e.what()));
   }
 }
@@ -373,7 +373,7 @@ std::vector<Record> DBConnector::getAllRecords(const Product& product) {
       records.emplace_back(dateTime, price);
     }
     return records;
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw std::runtime_error("Failed to get records: " + std::string(e.what()));
   }
 }
@@ -397,7 +397,7 @@ std::vector<Record> DBConnector::getRecords(const Product& product,
       records.emplace_back(dateTime, price);
     }
     return records;
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw std::runtime_error("Failed to get records: " + std::string(e.what()));
   }
 }
@@ -415,7 +415,7 @@ int DBConnector::getLatestRecordPrice(const Product& p_product) {
     } else {
       throw std::runtime_error("No Record found");
     }
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw e;
   }
 }
@@ -445,7 +445,7 @@ std::string DBConnector::addToken(int user_id, const std::string& token) {
   try {
     query.exec();
     return token;
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw std::runtime_error("Failed to add token: " + std::string(e.what()));
   }
 }
@@ -462,7 +462,7 @@ void DBConnector::removeToken(const std::string& p_token) {
     if (changes <= 0) {
       throw InvalidToken("token not valid");
     }
-  } catch (const std::exception& e) {
+  } catch (const SQLite::Exception& e) {
     throw std::runtime_error("" + std::string(e.what()));
   }
 }

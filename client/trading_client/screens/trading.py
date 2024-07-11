@@ -515,18 +515,20 @@ class TradeWidget(AppType, Static):
     @catch_and_notify(
         [
             TransactionFailed,
-            httpx.HTTPStatusError,
         ]
     )
     async def buy(self, event: Button.Pressed):
-        amount = int(self.query_one("#buy-amount-input", Input).value)
-        await self.parent.app.api.buy_product(self.parent.product_id, amount)
+        try:
+            amount = int(self.query_one("#buy-amount-input", Input).value)
+            await self.parent.app.api.buy_product(self.parent.product_id, amount)
+        except httpx.HTTPStatusError as e:
+            self.log(e.response.json())
+            self.app.notify(f"Transaction failed: {e.response.json()['detail']}")
 
     @on(Button.Pressed, "#sell-button")
     @catch_and_notify(
         [
             TransactionFailed,
-            httpx.HTTPStatusError,
         ]
     )
     async def sell(self, event: Button.Pressed):

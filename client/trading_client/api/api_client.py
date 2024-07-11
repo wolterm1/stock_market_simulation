@@ -122,7 +122,7 @@ class APIClient:
         )
 
         if response.status_code == 401:
-            raise IncorrectCredentials(response.json()["detail"])
+            raise IncorrectCredentials(response.json()["message"])
         response.raise_for_status()
 
         data = response.json()
@@ -133,8 +133,8 @@ class APIClient:
             "/register", data={"username": username, "password": password}
         )
 
-        if response.status_code == 409:
-            raise UserAlreadyExists(response.json()["detail"])
+        if response.status_code == 400:
+            raise UserAlreadyExists(response.json()["message"])
         response.raise_for_status()
 
         data = response.json()
@@ -144,7 +144,7 @@ class APIClient:
         response = await self.client.put("/logout")
 
         if response.status_code == 401:
-            raise InvalidToken(response.json()["detail"])
+            raise InvalidToken(response.json()["message"])
         response.raise_for_status()
 
         self.client.auth = NoAuth()
@@ -154,7 +154,7 @@ class APIClient:
         response = await self.client.get("/user")
 
         if response.status_code == 401:
-            raise InvalidToken(response.json()["detail"])
+            raise InvalidToken(response.json()["message"])
         response.raise_for_status()
 
         data: UserResponse = response.json()
@@ -178,7 +178,7 @@ class APIClient:
         response = await self.client.get(f"/product/{product_id}")
 
         if response.status_code == 404:
-            raise ProductNotFound(response.json()["detail"])
+            raise ProductNotFound(response.json()["message"])
         response.raise_for_status()
 
         data: ProductResponse = response.json()
@@ -224,24 +224,24 @@ class APIClient:
         supply = {item["product_id"]: item["quantity"] for item in data}
         return Market(supply=supply)
 
-    async def buy_product(self, product_id: int, quantity: int):
+    async def buy_product(self, product_id: int, amount: int):
         response = await self.client.post(
-            f"/product/{product_id}/buy", data={"quantity": quantity}
+            f"/product/{product_id}/buy", json={"amount": amount}
         )
 
         if response.status_code == 400:
-            raise TransactionFailed(response.json()["detail"])
+            raise TransactionFailed(response.json()["message"])
         elif response.status_code == 401:
-            raise InvalidToken(response.json()["detail"])
+            raise InvalidToken(response.json()["message"])
         response.raise_for_status()
 
-    async def sell_product(self, product_id: int, quantity: int):
+    async def sell_product(self, product_id: int, amount: int):
         response = await self.client.post(
-            f"/product/{product_id}/sell", data={"quantity": quantity}
+            f"/product/{product_id}/sell", json={"amount": amount}
         )
 
         if response.status_code == 400:
-            raise TransactionFailed(response.json()["detail"])
+            raise TransactionFailed(response.json()["message"])
         elif response.status_code == 401:
-            raise InvalidToken(response.json()["detail"])
+            raise InvalidToken(response.json()["message"])
         response.raise_for_status()

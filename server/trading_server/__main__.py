@@ -16,6 +16,8 @@ from trading_server.exception_handlers import (
     not_enough_money_handler,
     out_of_stock_handler,
     product_not_found_handler,
+    account_already_exists_handler,
+    not_in_inventory_handler,
 )
 from trading_server.models import (
     InventoryItemModel,
@@ -34,6 +36,8 @@ try:
         NotEnoughMoney,
         OutOfStock,
         ProductNotFound,
+        NotInInventory,
+        AccountAlreadyExists,
         User,
         Product,
         MarketPlace,
@@ -58,7 +62,7 @@ logger = getLogger("uvicorn")
 
 # init_database("./stockmarket.db")
 # market = MarketPlace(60 * 60, False)
-init_database(":memory:")
+init_database("stockmarket.db")
 market = MarketPlace(60 * 60, True)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -138,6 +142,8 @@ app.exception_handlers.update(
         NotEnoughMoney: not_enough_money_handler,
         OutOfStock: out_of_stock_handler,
         IncorrectPassword: incorrect_password_handler,
+        NotInInventory: not_in_inventory_handler,
+        AccountAlreadyExists: account_already_exists_handler,
     }
 )
 
@@ -220,12 +226,12 @@ async def get_product_by_id_(
 
 def _utc_now() -> datetime:
     """Helper Function that generates a datetime of now in UTC"""
-    return datetime.now(timezone.utc)
+    return datetime.now()
 
 
 def _10_minutess_ago() -> datetime:
     """Helper Function that generates a datetime of 10 minutes ago from invocation"""
-    return datetime.now(timezone.utc) - timedelta(minutes=10)
+    return datetime.now() - timedelta(minutes=10)
 
 
 @app.get(
@@ -300,7 +306,7 @@ async def get_market_() -> list[InventoryItemModel]:
     ]
 
 
-@app.put(
+@app.post(
     "/product/{product_id}/buy",
     status_code=204,
     responses={
@@ -316,7 +322,7 @@ async def buy_product_(
     user.buy_product(product, payload.amount)
 
 
-@app.put(
+@app.post(
     "/product/{product_id}/sell",
     status_code=204,
     responses={
