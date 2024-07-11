@@ -1,10 +1,7 @@
-from httpx import ConnectError
+import httpx
 from textual import events, log, on, work
 from textual.app import App, ComposeResult
-from textual.containers import (
-    Horizontal,
-    Vertical,
-)
+from textual.containers import Horizontal, Vertical, Container, Grid
 from textual.reactive import reactive
 from textual.screen import Screen
 from textual.widgets import Button, Input, Label
@@ -22,19 +19,22 @@ class LoginScreen(AppType, Screen[bool]):
 
     def compose(self) -> ComposeResult:
         """ """
-        yield Label("Login or Register")
-        with Vertical():
-            yield Input(placeholder="Username", name="username", id="username-input")
-            yield Input(
-                placeholder="Password",
-                name="password",
-                id="password-input",
-                password=True,
-            )
+        with Container(id="login-box"):
+            yield Label("Login or Register")
+            with Vertical():
+                yield Input(
+                    placeholder="Username", name="username", id="username-input"
+                )
+                yield Input(
+                    placeholder="Password",
+                    name="password",
+                    id="password-input",
+                    password=True,
+                )
 
-        with Horizontal():
-            yield Button("Login", name="login", id="login-button")
-            yield Button("Register", name="register", id="register-button")
+            with Grid():
+                yield Button("Login", name="login", id="login-button")
+                yield Button("Register", name="register", id="register-button")
 
     @on(Input.Changed, "#username-input")
     async def username_changed(self, event: Input.Changed):
@@ -45,13 +45,13 @@ class LoginScreen(AppType, Screen[bool]):
         self.password = event.value
 
     @on(Button.Pressed, "#login-button")
-    @catch_and_notify([ConnectError, IncorrectCredentials])
+    @catch_and_notify([httpx.ConnectError, IncorrectCredentials, httpx.HTTPStatusError])
     async def login(self, event: Button.Pressed):
         await self.app.api.login(self.username, self.password)
         self.app.push_screen(TradingScreen())
 
     @on(Button.Pressed, "#register-button")
-    @catch_and_notify([ConnectError, UserAlreadyExists])
+    @catch_and_notify([httpx.ConnectError, UserAlreadyExists, httpx.HTTPStatusError])
     async def register(self, event: Button.Pressed):
         await self.app.api.register(self.username, self.password)
         self.app.push_screen(TradingScreen())

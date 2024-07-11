@@ -1,17 +1,27 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from trading_server._so._auth import (
+from trading_server.modules.market_logic import (
+    NotEnoughMoney,
+    OutOfStock,
+    ProductNotFound,
     IncorrectPassword,
     InvalidToken,
-    UserNotFound,
+    NotInInventory,
+    AccountAlreadyExists,
 )
-from trading_server._so._market_logic import NotEnoughMoney, OutOfStock, ProductNotFound
 
 
-async def user_not_found_handler(request: Request, exc: UserNotFound):
+async def account_already_exists_handler(request: Request, exc: AccountAlreadyExists):
     return JSONResponse(
-        status_code=404,
-        content={"message": "User not found"},
+        status_code=400,
+        content={"message": str(exc)},
+    )
+
+
+async def not_in_inventory_handler(request: Request, exc: NotInInventory):
+    return JSONResponse(
+        status_code=400,
+        content={"message": str(exc)},
     )
 
 

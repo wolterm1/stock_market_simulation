@@ -1,0 +1,7 @@
+[submodule "stock_mechanics/external/pybind11"]
+	path = stock_mechanics/external/pybind11
+	url = https://github.com/pybind/pybind11.git
+	branch = stable
+[submodule "stock_mechanics/external/SQLiteCpp"]
+	path = stock_mechanics/external/SQLiteCpp
+	url = https://github.com/SRombauts/SQLiteCpp.git

@@ -1,4 +1,56 @@
-$accent: #ff15;
+LoginScreen {
+	align: center middle;
+
+}
+#login-box {
+	background: black 20%;
+	padding: 2 3 2 3;
+	width: auto;
+	height: auto;
+	& Label {
+		align: center middle;
+		width: auto;
+		margin-bottom: 1;
+		text-style: bold;
+	}
+	& Vertical {
+		width: auto;
+		height: auto;
+	}
+
+	& Input {
+		border: heavy $accent;
+		background: transparent;
+		width: 41;
+	}
+	& Input:focus {
+		border: heavy $accent-lighten-1;
+	}
+
+	& Grid {
+		width: 100%;
+		height: 3;
+		grid-size: 2 1;
+		margin-top: 1;
+		align: center middle;
+	}
+
+	& Button {
+			height: 3;
+			width: auto;
+		}
+
+	& #login-button {
+		background: $accent;
+		&:hover {
+			background: $accent-darken-2;
+		}
+	}
+	& #register-button:hover {
+		background: black 20%;
+	}
+}
+
 TradingScreen {
 }
 
