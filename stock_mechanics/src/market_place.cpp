@@ -53,21 +53,17 @@ void MarketPlace::updateProductPrices() {
   for (auto product : getAllProducts()) {
     int current_price = product.getCurrentPrice();
     // in the future trend should be based on supply and demand
-    double trend = trendDistribution(gen);
-    Record record(now, randomWalk(current_price, trend, 1, 0.8));
+    double trend = 0.3 * (2.0 * ((double) std::rand() / RAND_MAX) - 1.0);
+    Record record(now, randomWalk(current_price, trend, 0.8, 1));
     product.addRecord(record);
   }
 }
 
-int MarketPlace::randomWalk(int current_price, double trend, int timeDelta,
-                            double standardDeviation) {
-  double random_number = randomDistribution(gen);
-
-  double second_part = (trend * timeDelta * current_price);
-  double third_part = (standardDeviation * std::sqrt(timeDelta) *
-                       random_number * current_price);
-  int new_price = std::round(current_price + second_part + third_part) + 100;
-  return new_price;
+int MarketPlace::randomWalk(int current_price, double trend, double streuung, double dt) {
+  double sqdt = std::sqrt(dt);
+  std::mt19937 generator(std::random_device{}());
+  double Y = trendDistribution(generator);
+  return current_price * (1 + trend * dt + streuung * sqdt * Y)+ randomNumber(generator);
 }
 
 // void MarketPlace::updateProductPrices() {

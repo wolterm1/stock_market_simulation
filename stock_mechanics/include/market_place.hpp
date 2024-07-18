@@ -18,15 +18,15 @@ class MarketPlace {
   void startPriceUpdate();
 
  private:
-  int randomWalk(int current_price, double trend, int timeDelta,
-                 double standardDeviation);
+  int randomWalk(int current_price, double trend, double streuung, double dt);      
 
  private:
   std::random_device rd;
   std::mt19937 gen{rd()};
 
-  std::uniform_real_distribution<> randomDistribution{-1.0, 1.0};
-  std::uniform_real_distribution<> trendDistribution{-0.5, 0.5};
+  std::uniform_real_distribution<> trendDistribution{-0.05, 0.049};
+    std::uniform_real_distribution<> randomNumber{2, 4};
+
 
   Timer timer;
   int m_limit_record_entries = 3600;
