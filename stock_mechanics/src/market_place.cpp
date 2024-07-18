@@ -66,7 +66,7 @@ int MarketPlace::randomWalk(int current_price, double trend, int timeDelta,
   double second_part = (trend * timeDelta * current_price);
   double third_part = (standardDeviation * std::sqrt(timeDelta) *
                        random_number * current_price);
-  int new_price = std::round(current_price + second_part + third_part);
+  int new_price = std::round(current_price + second_part + third_part) + 100;
   return new_price;
 }
 
