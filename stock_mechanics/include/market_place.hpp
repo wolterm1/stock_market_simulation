@@ -24,7 +24,7 @@ class MarketPlace {
   std::random_device rd;
   std::mt19937 gen{rd()};
 
-  std::uniform_real_distribution<> trendDistribution{-0.05, 0.049};
+  std::uniform_real_distribution<> trendDistribution{-0.05, 0.04};
     std::uniform_real_distribution<> randomNumber{2, 4};
 
 

@@ -19,16 +19,16 @@ MarketPlace::MarketPlace(int limit_record_entries, bool try_generate_products)
     std::vector<Product> products = DBConnector::getAllProducts();
     if (products.empty()) {
       time_point now = std::chrono::system_clock::now();
-      addProduct("Apple", 100).addRecord(Record(now, 100));
-      addProduct("Banana", 100).addRecord(Record(now, 100));
-      addProduct("Orange", 100).addRecord(Record(now, 100));
-      addProduct("Pineapple", 100).addRecord(Record(now, 100));
-      addProduct("Mango", 100).addRecord(Record(now, 100));
-      addProduct("Peach", 100).addRecord(Record(now, 100));
-      addProduct("Strawberry", 100).addRecord(Record(now, 100));
-      addProduct("Blueberry", 100).addRecord(Record(now, 100));
-      addProduct("Raspberry", 100).addRecord(Record(now, 100));
-      addProduct("Blackberry", 100).addRecord(Record(now, 100));
+      addProduct("Badehose", 100).addRecord(Record(now, 100));
+      addProduct("Fentanyl", 100).addRecord(Record(now, 100));
+      addProduct("Kristall Mett", 100).addRecord(Record(now, 100));
+      addProduct("Zahnbürste", 100).addRecord(Record(now, 100));
+      addProduct("Schwakau", 100).addRecord(Record(now, 100));
+      addProduct("Massi", 100).addRecord(Record(now, 100));
+      addProduct("SüdVPN Aktien", 100).addRecord(Record(now, 100));
+      addProduct("99 Luftballons", 100).addRecord(Record(now, 100));
+      addProduct("Ein neuer drecks Laptop", 100).addRecord(Record(now, 100));
+      addProduct("Poose Zulassung", 100).addRecord(Record(now, 100));
     }
     timer.start();
   }
