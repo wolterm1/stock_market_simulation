@@ -3,11 +3,11 @@
 ## Installation
 
 ### Dependencies: 
-    - A C++ Compiler
-    - CMake
-    - Python + pip
-    - SQLite: https://www.sqlite.org/
-    
+- A C++ Compiler
+- CMake
+- Python + pip
+- SQLite: https://www.sqlite.org/
+
 ```bash
 git clone https://gitlab.informatik.uni-bonn.de/gamma-jmt-group/projectstockmarket.git
 
