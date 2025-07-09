@@ -342,6 +342,6 @@ if __name__ == "__main__":
     import uvicorn
     from pathlib import Path
 
-    log_config_path = Path("trading_server/log_conf.yaml").resolve()
+    log_config_path = Path(__file__).parent / "log_conf.yaml"
 
     uvicorn.run(app, port=8080, log_config=str(log_config_path))

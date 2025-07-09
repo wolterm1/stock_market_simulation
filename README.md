@@ -5,23 +5,20 @@
 ```bash
 # clone repository
 git clone https://gitlab.informatik.uni-bonn.de/gamma-jmt-group/projectstockmarket.git
-cd stock_mechanics
 
 # Cmake Installation
-cmake -S . -B build -D CMAKE_INSTALL_PREFIX=./build/local_libs
-cmake --build build
+cmake -S stock_mechanics -B stock_mechanics/build
+cmake --build stock_mechanics/build
 
 # install pybindings
-cmake --install build
+cmake --install stock_mechanics/build
+
+pip install -e server
+pip install -e client
 
 #start server
-pip install -e server
-cd server 
-python3 -m trading_server
-
+python3 -m server/trading_server
 #start client
-cd client
-pip install -e .
-python3 -m trading_client
+python3 -m client/trading_client
 
 ```
