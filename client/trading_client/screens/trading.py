@@ -4,7 +4,6 @@ from itertools import tee
 import random
 from collections import deque
 from datetime import date, datetime, timedelta, time
-from re import T
 import re
 import time
 from tkinter import Y
@@ -328,20 +327,16 @@ class ProductWidget(AppType, Static):
         yield TradeWidget()
 
     async def on_mount(self):
-        self.fetch_product()
+        worker = self.fetch_product()  # Worker starten, kein await
+        await worker.wait()            # Auf Ergebnis warten
         self.styles.background = self.color.with_alpha(0.1)
-        self.query_one("#product-name", Label).styles.background = self.color.darken(
-            0.3
-        )
+        self.query_one("#product-name", Label).update(self.product.product_name)
+        self.query_one("#product-name", Label).styles.background = self.color.darken(0.3)
 
     @work
     async def fetch_product(self):
         self.log.info(f"Fetching product {self.product_id}")
-
         self.product = await self.app.api.get_product(self.product_id)
-        product_name = self.query_one("#product-name", Label)
-        product_name.update(self.product.product_name)
-
         self.post_message(self.FetchProductFinished(self.product_id))
 
     @work(exclusive=True, name="fetch_new_records")
@@ -505,10 +500,8 @@ class TradeWidget(AppType, Static):
         buy_button.styles.background = self.color
 
         sell_button = self.query_one("#sell-button", Button)
-        sell_button.styles.background = self.color.lighten(0.5).blend(
-            (181, 16, 33, 255), 0.6
-        )
-
+        sell_button.styles.background = self.color.lighten(0.5).blend(Color(
+            181, 16, 33, 255), 0.6)
         self.styles.hatch = ("left", self.color.with_alpha(0.2))
 
     @on(Button.Pressed, "#buy-button")
@@ -519,8 +512,9 @@ class TradeWidget(AppType, Static):
     )
     async def buy(self, event: Button.Pressed):
         try:
-            amount = int(self.query_one("#buy-amount-input", Input).value)
-            await self.parent.app.api.buy_product(self.parent.product_id, amount)
+            amount = int(self.query_one("#buy-amount-input", Input).value or 0)
+            if amount > 0: 
+                await self.parent.app.api.buy_product(self.parent.product_id, amount)
         except httpx.HTTPStatusError as e:
             self.log(e.response.json())
             self.app.notify(f"Transaction failed: {e.response.json()['detail']}")
@@ -532,5 +526,6 @@ class TradeWidget(AppType, Static):
         ]
     )
     async def sell(self, event: Button.Pressed):
-        amount = int(self.query_one("#sell-amount-input", Input).value)
-        await self.parent.app.api.sell_product(self.parent.product_id, amount)
+        amount = int(self.query_one("#sell-amount-input", Input).value or 0)
+        if amount > 0: 
+            await self.parent.app.api.sell_product(self.parent.product_id, amount)
