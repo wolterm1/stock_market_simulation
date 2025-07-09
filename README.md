@@ -1,9 +1,8 @@
-# Stock Mechanics
+# projectstockmarket
 
 ## Installation
 
 ```bash
-# clone repository
 git clone https://gitlab.informatik.uni-bonn.de/gamma-jmt-group/projectstockmarket.git &&
 
 cd projectstockmarket &&
