@@ -26,8 +26,7 @@ pip install -e client
 ## Starting Server and Graphical Client
 
 ```bash
-#start server
 python3 -m server/trading_server
-#start client
+
 python3 -m client/trading_client
 ```
