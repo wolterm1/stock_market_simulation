@@ -3,17 +3,17 @@
 ## Installation
 
 ```bash
-git clone https://gitlab.informatik.uni-bonn.de/gamma-jmt-group/projectstockmarket.git &&
+git clone https://gitlab.informatik.uni-bonn.de/gamma-jmt-group/projectstockmarket.git
 
-cd projectstockmarket &&
+cd projectstockmarket
 
-cmake -S stock_mechanics -B stock_mechanics/build &&
-cmake --build stock_mechanics/build && 
+cmake -S stock_mechanics -B stock_mechanics/build
+cmake --build stock_mechanics/build
 
-cmake --install stock_mechanics/build && 
+cmake --install stock_mechanics/build
 
-pip install -e server && 
-pip install -e client && 
+pip install -e server
+pip install -e client
 
 ```
 
@@ -25,4 +25,3 @@ python3 -m server/trading_server
 #start client
 python3 -m client/trading_client
 ```
-
