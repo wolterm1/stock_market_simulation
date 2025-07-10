@@ -25,3 +25,8 @@ python3 -m server/trading_server
 #start client
 python3 -m client/trading_client
 ```
+
+## Preview
+
+![Bild0](docs/pictures/picture1.png)
+![Bild1](docs/pictures/picture3.png)
