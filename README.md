@@ -1,7 +1,13 @@
 # projectstockmarket
 
-## Installation
 
+## Dependencies: 
+- A C++ Compiler
+- CMake
+- Python + pip
+- SQLite: https://www.sqlite.org/
+
+## Installation
 ```bash
 git clone https://gitlab.informatik.uni-bonn.de/gamma-jmt-group/projectstockmarket.git
 
@@ -20,9 +26,8 @@ pip install -e client
 ## Starting Server and Graphical Client
 
 ```bash
-#start server
 python3 -m server/trading_server
-#start client
+
 python3 -m client/trading_client
 ```
 
