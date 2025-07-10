@@ -33,5 +33,8 @@ python3 -m client/trading_client
 
 ## Preview
 
+Login Screen
 ![Bild0](docs/pictures/picture1.png)
+
+Trading View
 ![Bild1](docs/pictures/picture3.png)
