@@ -1,5 +1,5 @@
 # projectstockmarket
-
+A Simulation of a Stock-Market. You can create an Account and login with credentials and then buy and sell Stocks with UI and monitor your current Holdings in your Dashboard
 
 ## Dependencies: 
 - A C++ Compiler
